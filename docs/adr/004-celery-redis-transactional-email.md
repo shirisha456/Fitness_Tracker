@@ -24,5 +24,5 @@ queued.
 - A production deployment needs the `worker` process actually running, or emails silently queue
   forever without being sent — there's no synchronous fallback in production.
 - Local/CI testing (`CELERY_TASK_ALWAYS_EAGER=true`) never exercises the real worker+broker
-  path — Phase 14's Docker Compose validation was the first point in this rebuild where the
+  path — Phase 14's Docker Compose validation was the first point in this project where the
   actual queued-and-delivered-by-a-separate-process flow was verified end-to-end.

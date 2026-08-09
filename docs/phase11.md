@@ -17,4 +17,4 @@ read via their hidden native-`<select>` mirrors — correctly pre-populated from
 read; confirmed `/auth/me.has_profile` flipped to `true`, validating the Phase 5 backend wiring
 end-to-end from the browser. Also edited the display name **through the actual UI submit
 button** (not a direct fetch) and confirmed it persisted — the first fully-UI-driven form submit
-in the whole rebuild that didn't need a JS-dispatched click fallback.
+in the whole project that didn't need a JS-dispatched click fallback.

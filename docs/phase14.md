@@ -25,7 +25,7 @@ production-topology browser test through the actual nginx entrypoint: landing pa
 login — all routed browser → nginx → frontend BFF → Docker-internal `api:8000` → Postgres, the
 real service-to-service path, not host networking. Confirmed the verification email was
 genuinely delivered to Mailhog via the real Celery `worker` container and Redis broker — the
-first time that path was exercised anywhere in this rebuild, since every earlier dev-server
+first time that path was exercised anywhere in this project, since every earlier dev-server
 phase used `CELERY_TASK_ALWAYS_EAGER=true`, which runs tasks synchronously in-process and never
 touches the real worker at all. Logged a workout through the BFF and confirmed it appeared on
 the dashboard, also through nginx. Everything torn down afterward: containers, network, volume,
