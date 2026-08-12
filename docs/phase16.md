@@ -22,7 +22,7 @@ This wasn't a dry run: the EC2 instance was provisioned, Docker Compose brought 
 on it, and a real Let's Encrypt certificate was issued via certbot's webroot method against
 [sslip.io](https://sslip.io) — a free wildcard-DNS service that resolves
 `<anything>.<IP>.sslip.io` back to a literal IP, used here since no custom domain was registered.
-The hostname `fitforge.18-221-88-168.sslip.io` in `nginx.prod.conf` is that real instance's
+The hostname `fitness-tracker.18-221-88-168.sslip.io` in `nginx.prod.conf` is that real instance's
 address — not a credential or secret, just a public IP embedded in a DNS name.
 
 ## Validation

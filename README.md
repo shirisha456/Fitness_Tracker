@@ -1,6 +1,6 @@
 # Fitness Tracker
 
-**Live at: [fitforge.18-221-88-168.sslip.io](https://fitforge.18-221-88-168.sslip.io)** — deployed
+**Live at: [fitness-tracker.18-221-88-168.sslip.io](https://fitness-tracker.18-221-88-168.sslip.io)** — deployed
 on an AWS EC2 instance behind nginx, with a real Let's Encrypt HTTPS certificate.
 
 AI-Powered Fitness Platform — a full-stack app for tracking workouts, nutrition, and body
