@@ -46,7 +46,7 @@ function VerifyEmailContent() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6">
       <div className="max-w-md text-center">
-        <h1 className="text-3xl font-bold tracking-tight">FitForge</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Fitness Tracker</h1>
         <p className="mt-4 text-lg text-muted-foreground">{message}</p>
         {status === "success" && (
           <Link href="/login" className="mt-6 inline-block text-sm underline">

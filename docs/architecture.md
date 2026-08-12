@@ -2,7 +2,7 @@
 
 ## System overview
 
-FitForge is a three-tier system: a Next.js frontend acting as its own backend-for-frontend
+Fitness Tracker is a three-tier system: a Next.js frontend acting as its own backend-for-frontend
 (BFF), a FastAPI backend, and PostgreSQL/Redis for storage and background work. nginx sits in
 front of both, splitting traffic by path.
 

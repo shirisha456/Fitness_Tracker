@@ -1,4 +1,4 @@
-# FitForge
+# Fitness Tracker
 
 **Live at: [fitforge.18-221-88-168.sslip.io](https://fitforge.18-221-88-168.sslip.io)** — deployed
 on an AWS EC2 instance behind nginx, with a real Let's Encrypt HTTPS certificate.
@@ -8,7 +8,7 @@ progress, with an AI coach for generating workouts and meal plans and answering 
 questions. Built phase-by-phase, one module at a time, each validated end to end before moving
 on. See [docs/case-study.md](docs/case-study.md) for the engineering approach behind it.
 
-## Why FitForge
+## Why Fitness Tracker
 
 **The problem:** tracking fitness usually means juggling several single-purpose apps — one for
 counting calories, another for logging sets and reps, a spreadsheet for weight over time — none
@@ -26,7 +26,7 @@ those apps offer is generic, because it isn't reasoning over your real logged hi
 | Micronutrient trackers | Deep micronutrient detail | No workout logging |
 | Health data aggregators | Pulling data in *from* other apps | Don't originate structured workout/meal logs themselves; no coaching |
 
-**What FitForge does differently:** one data model across workouts, nutrition, and body
+**What Fitness Tracker does differently:** one data model across workouts, nutrition, and body
 progress, so the AI coach can actually reason over what you've really logged — not give
 generic advice — and a single place to see the whole picture instead of cross-referencing three
 apps.
@@ -99,8 +99,8 @@ built in each phase and how it was validated. Case study: [docs/case-study.md](d
 ### 1. Clone and configure
 
 ```bash
-git clone <repo-url> fitforge
-cd fitforge
+git clone <repo-url> fitness-tracker
+cd fitness-tracker
 cp .env.example .env
 ```
 
@@ -195,7 +195,7 @@ Set `NEXT_PUBLIC_API_URL=http://localhost:8000/api` for direct API access during
 ## Project Structure
 
 ```
-fitforge/
+fitness-tracker/
 ├── backend/          # FastAPI application
 ├── frontend/         # Next.js application
 ├── nginx/            # Reverse proxy config
@@ -213,4 +213,4 @@ fitforge/
 
 ## License
 
-Proprietary — FitForge
+Proprietary — Fitness Tracker

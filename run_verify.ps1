@@ -1,4 +1,4 @@
-# FitForge verification script - outputs to verify_results.txt
+# Fitness Tracker verification script - outputs to verify_results.txt
 $ErrorActionPreference = "Continue"
 $out = "C:\Users\Shirisha\fitforge\verify_results.txt"
 "" | Set-Content $out

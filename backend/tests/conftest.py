@@ -1,4 +1,4 @@
-"""Pytest fixtures for FitForge backend tests."""
+"""Pytest fixtures for Fitness Tracker backend tests."""
 
 from __future__ import annotations
 

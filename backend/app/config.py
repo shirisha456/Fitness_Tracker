@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     smtp_port: int = 1025
     smtp_user: str = ""
     smtp_password: str = ""
-    smtp_from: str = "FitForge <noreply@fitforge.local>"
+    smtp_from: str = "Fitness Tracker <noreply@fitness-tracker.local>"
     smtp_use_tls: bool = False
     frontend_url: str = "http://localhost:3000"
     email_verification_expire_hours: int = Field(default=24, ge=1)

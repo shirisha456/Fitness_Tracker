@@ -20,18 +20,18 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
-    logger.info("Starting FitForge API")
+    logger.info("Starting Fitness Tracker API")
     yield
     await close_redis_client()
     await engine.dispose()
-    logger.info("Shutting down FitForge API")
+    logger.info("Shutting down Fitness Tracker API")
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(
-        title="FitForge API",
+        title="Fitness Tracker API",
         description="AI-Powered Fitness Platform",
         version="0.1.0",
         lifespan=lifespan,

@@ -77,19 +77,19 @@ def build_verification_email(to_email: str, raw_token: str) -> EmailMessagePaylo
     settings = get_settings()
     link = f"{settings.frontend_url.rstrip('/')}/verify-email?token={raw_token}"
     text = (
-        "Welcome to FitForge!\n\n"
+        "Welcome to Fitness Tracker!\n\n"
         "Please verify your email by opening this link:\n"
         f"{link}\n\n"
         "If you did not create an account, ignore this email.\n"
     )
     html = (
-        "<p>Welcome to FitForge!</p>"
+        "<p>Welcome to Fitness Tracker!</p>"
         f'<p><a href="{link}">Verify your email</a></p>'
         "<p>If you did not create an account, ignore this email.</p>"
     )
     return EmailMessagePayload(
         to_email=to_email,
-        subject="Verify your FitForge email",
+        subject="Verify your Fitness Tracker email",
         text_body=text,
         html_body=html,
     )
@@ -99,19 +99,19 @@ def build_password_reset_email(to_email: str, raw_token: str) -> EmailMessagePay
     settings = get_settings()
     link = f"{settings.frontend_url.rstrip('/')}/reset-password?token={raw_token}"
     text = (
-        "FitForge password reset\n\n"
+        "Fitness Tracker password reset\n\n"
         "Reset your password using this link (expires in 1 hour):\n"
         f"{link}\n\n"
         "If you did not request this, ignore this email.\n"
     )
     html = (
-        "<p>FitForge password reset</p>"
+        "<p>Fitness Tracker password reset</p>"
         f'<p><a href="{link}">Reset your password</a></p>'
         "<p>This link expires in 1 hour. If you did not request this, ignore this email.</p>"
     )
     return EmailMessagePayload(
         to_email=to_email,
-        subject="Reset your FitForge password",
+        subject="Reset your Fitness Tracker password",
         text_body=text,
         html_body=html,
     )

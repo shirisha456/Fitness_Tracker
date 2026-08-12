@@ -15,7 +15,7 @@ export default function HomePage() {
   return (
     <main className="flex min-h-screen flex-col bg-background">
       <header className="flex items-center justify-between px-6 py-4">
-        <span className="text-lg font-bold tracking-tight">FitForge</span>
+        <span className="text-lg font-bold tracking-tight">Fitness Tracker</span>
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost">
             <Link href="/login">Log in</Link>
@@ -32,7 +32,7 @@ export default function HomePage() {
             AI-Powered Fitness Platform
           </p>
           <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
-            FitForge
+            Fitness Tracker
           </h1>
           <p className="mt-6 text-lg text-muted-foreground">
             Train smarter with personalized workouts, nutrition tracking, and intelligent

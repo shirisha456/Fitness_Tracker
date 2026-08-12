@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fitforge-backend"
+name = "fitness-tracker-backend"
 version = "0.1.0"
-description = "FitForge AI-Powered Fitness Platform API"
+description = "Fitness Tracker AI-Powered Fitness Platform API"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

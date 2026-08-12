@@ -1,8 +1,8 @@
-# Case Study — Building FitForge Phase by Phase
+# Case Study — Building Fitness Tracker Phase by Phase
 
 ## What this is
 
-FitForge is a full-stack fitness platform: workout logging, nutrition and water tracking, body
+Fitness Tracker is a full-stack fitness platform: workout logging, nutrition and water tracking, body
 progress and goals, a single-row user profile, and an AI coach that generates workouts and meal
 plans and answers fitness questions. It was built phase-by-phase, one module at a time, aiming
 for clean, reviewable history — one phase per commit, each independently validated before moving

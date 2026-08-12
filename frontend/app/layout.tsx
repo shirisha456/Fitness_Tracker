@@ -11,7 +11,7 @@ import type { AuthUser } from "@/lib/auth/types";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FitForge",
+  title: "Fitness Tracker",
   description: "AI-Powered Fitness Platform",
 };
 

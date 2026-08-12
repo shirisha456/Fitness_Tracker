@@ -56,7 +56,7 @@ function ResetPasswordContent() {
       <form onSubmit={onSubmit} className="w-full max-w-md space-y-4">
         <h1 className="text-center text-3xl font-bold">Reset password</h1>
         <p className="text-center text-sm text-muted-foreground">
-          Choose a new password for your FitForge account.
+          Choose a new password for your Fitness Tracker account.
         </p>
         <PasswordInput
           required

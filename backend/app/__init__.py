@@ -1,1 +1,1 @@
-"""FitForge backend application."""
+"""Fitness Tracker backend application."""

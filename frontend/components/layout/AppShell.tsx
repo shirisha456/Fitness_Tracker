@@ -73,7 +73,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen">
       <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-border md:p-4">
-        <div className="mb-6 px-2 text-lg font-bold tracking-tight">FitForge</div>
+        <div className="mb-6 px-2 text-lg font-bold tracking-tight">Fitness Tracker</div>
         <div className="flex-1">
           <NavList pathname={pathname} />
         </div>
@@ -82,7 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
-          <span className="text-lg font-bold tracking-tight">FitForge</span>
+          <span className="text-lg font-bold tracking-tight">Fitness Tracker</span>
           <Button
             variant="ghost"
             size="icon"
@@ -96,7 +96,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetContent side="left" className="flex w-64 flex-col p-4">
             <SheetTitle className="mb-6 px-2 text-lg font-bold tracking-tight">
-              FitForge
+              Fitness Tracker
             </SheetTitle>
             <div className="flex-1">
               <NavList pathname={pathname} onNavigate={() => setMobileNavOpen(false)} />

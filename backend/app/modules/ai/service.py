@@ -27,7 +27,7 @@ from app.modules.progress import service as progress_service
 from app.modules.workouts import service as workouts_service
 
 _COACH_SYSTEM_PROMPT = (
-    "You are FitForge's AI fitness coach. Give practical, encouraging, concise advice about "
+    "You are Fitness Tracker's AI fitness coach. Give practical, encouraging, concise advice about "
     "workouts, nutrition, and general fitness. You are not a medical professional: for "
     "injuries, pain, or medical conditions, advise the user to consult a doctor. Keep "
     "responses short and actionable."
@@ -104,7 +104,7 @@ async def generate_workout(
     exercise_names = ", ".join(e.name for e in exercises)
 
     system_prompt = (
-        "You are a fitness coach creating a workout plan for the FitForge app. "
+        "You are a fitness coach creating a workout plan for the Fitness Tracker app. "
         f"You must only use exercises from this exact list: {exercise_names}. "
         "Respond with JSON matching this shape: "
         '{"name": string, "exercises": [{"exercise_name": string, "sets": int, '
@@ -135,7 +135,8 @@ async def generate_workout(
 
 async def generate_meals(payload: GenerateMealRequest) -> GenerateMealResponse:
     system_prompt = (
-        "You are a nutrition assistant for the FitForge app. Suggest 3 realistic meal ideas. "
+        "You are a nutrition assistant for the Fitness Tracker app. "
+        "Suggest 3 realistic meal ideas. "
         'Respond with JSON matching this shape: {"suggestions": [{"name": string, '
         '"estimated_calories": int, "protein_g": number, "carbs_g": number, "fat_g": number}]}'
     )
@@ -182,7 +183,7 @@ async def get_recommendations(db: AsyncSession, user: User) -> RecommendationsRe
         context_lines.append("No body measurements logged yet.")
 
     system_prompt = (
-        "You are FitForge's AI fitness coach. Based on the user's recent activity, give 2-3 "
+        "You are Fitness Tracker's AI fitness coach. Based on the user's recent activity, give 2-3 "
         "short, specific, encouraging tips (one sentence each). "
         'Respond with JSON matching this shape: {"recommendations": [string, ...]}'
     )

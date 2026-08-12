@@ -1,4 +1,4 @@
-"""Celery application for FitForge background tasks."""
+"""Celery application for Fitness Tracker background tasks."""
 
 from celery import Celery
 
@@ -7,7 +7,7 @@ from app.config import get_settings
 settings = get_settings()
 
 celery_app = Celery(
-    "fitforge",
+    "fitness_tracker",
     broker=settings.redis_url,
     backend=settings.redis_url,
     include=["app.modules.auth.tasks"],

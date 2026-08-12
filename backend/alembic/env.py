@@ -1,4 +1,4 @@
-"""Alembic migration environment for FitForge."""
+"""Alembic migration environment for Fitness Tracker."""
 
 import asyncio
 from logging.config import fileConfig
