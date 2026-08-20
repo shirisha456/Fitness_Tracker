@@ -1,13 +1,13 @@
 # Fitness Tracker verification script - outputs to verify_results.txt
 $ErrorActionPreference = "Continue"
-$out = "C:\Users\Shirisha\fitforge\verify_results.txt"
+$out = "C:\Users\Shirisha\Fitness_tracker\verify_results.txt"
 "" | Set-Content $out
 
 function Log($msg) {
     $msg | Tee-Object -FilePath $out -Append
 }
 
-Set-Location "C:\Users\Shirisha\fitforge"
+Set-Location "C:\Users\Shirisha\Fitness_tracker"
 Log "=== Step 1: CWD ==="
 Log (Get-Location).Path
 
@@ -21,7 +21,7 @@ Log "`n=== Step 4: Wait for api healthy ==="
 $maxWait = 180
 $elapsed = 0
 while ($elapsed -lt $maxWait) {
-    $status = docker inspect --format='{{.State.Health.Status}}' fitforge-api-1 2>&1
+    $status = docker inspect --format='{{.State.Health.Status}}' fitness_tracker-api-1 2>&1
     Log "api health: $status (elapsed ${elapsed}s)"
     if ($status -eq "healthy") { break }
     Start-Sleep -Seconds 5
@@ -49,7 +49,7 @@ Log "`n=== docker ps ==="
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>&1 | ForEach-Object { Log $_ }
 
 Log "`n=== Step 7: pytest ==="
-Set-Location "C:\Users\Shirisha\fitforge\backend"
+Set-Location "C:\Users\Shirisha\Fitness_tracker\backend"
 & .\.venv\Scripts\python.exe -m pytest -v --tb=short 2>&1 | ForEach-Object { Log $_ }
 
 Log "`n=== DONE ==="
