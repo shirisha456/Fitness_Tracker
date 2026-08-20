@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, func, text
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Index, Integer, String, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,6 +14,9 @@ from app.core.database import Base
 
 class Meal(Base):
     __tablename__ = "meals"
+    # Serves both the date-range filter and the ORDER BY in list_meals, and the
+    # single-day aggregate in get_daily_summary. Subsumes the old user_id index.
+    __table_args__ = (Index("ix_meals_user_logged", "user_id", "logged_at"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -25,7 +28,6 @@ class Meal(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     logged_at: Mapped[date] = mapped_column(Date, nullable=False, index=True)
@@ -43,6 +45,7 @@ class Meal(Base):
 
 class WaterEntry(Base):
     __tablename__ = "water_entries"
+    __table_args__ = (Index("ix_water_entries_user_logged", "user_id", "logged_at"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -54,7 +57,6 @@ class WaterEntry(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     logged_at: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     amount_ml: Mapped[int] = mapped_column(Integer, nullable=False)

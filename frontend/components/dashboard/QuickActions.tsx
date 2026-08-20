@@ -1,13 +1,13 @@
 import { Dumbbell, Salad, UserCog } from "lucide-react";
+import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const actions = [
-  { label: "Log a workout", icon: Dumbbell },
-  { label: "Log a meal", icon: Salad },
-  { label: "Update profile", icon: UserCog },
+  { label: "Log a workout", href: "/workouts/new", icon: Dumbbell },
+  { label: "Log a meal", href: "/nutrition/meals/new", icon: Salad },
+  { label: "Update profile", href: "/profile", icon: UserCog },
 ];
 
 export function QuickActions() {
@@ -18,12 +18,11 @@ export function QuickActions() {
       </CardHeader>
       <CardContent className="flex flex-wrap gap-3">
         {actions.map((action) => (
-          <Button key={action.label} variant="outline" disabled className="gap-2">
-            <action.icon className="h-4 w-4" />
-            {action.label}
-            <Badge variant="secondary" className="text-[10px]">
-              Soon
-            </Badge>
+          <Button key={action.href} asChild variant="outline" className="gap-2">
+            <Link href={action.href}>
+              <action.icon className="h-4 w-4" />
+              {action.label}
+            </Link>
           </Button>
         ))}
       </CardContent>

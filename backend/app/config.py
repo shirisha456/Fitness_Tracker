@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     )
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
+    # The OpenAI SDK defaults to a 600s timeout — long enough that one hung upstream
+    # request ties up a worker for ten minutes. Bound it explicitly.
+    openai_timeout_seconds: float = Field(default=20.0, gt=0)
 
     # JWT / Auth
     access_token_expire_minutes: int = Field(default=15, ge=1)

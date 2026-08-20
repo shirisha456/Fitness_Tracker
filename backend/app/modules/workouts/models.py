@@ -12,6 +12,7 @@ from sqlalchemy import (
     Enum,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     UniqueConstraint,
@@ -54,6 +55,15 @@ class Exercise(Base):
     )
     muscle_group: Mapped[str | None] = mapped_column(String(100), nullable=True)
     equipment: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # NULL = curated library entry (seeded by migrations). Non-NULL = a custom exercise
+    # one user added. The distinction matters because exercise names are free text that
+    # gets concatenated into the AI system prompt — see ai/service.generate_workout.
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -63,6 +73,11 @@ class Exercise(Base):
 
 class Workout(Base):
     __tablename__ = "workouts"
+    # Every list query is WHERE user_id = ? AND performed_at BETWEEN ? AND ?
+    # ORDER BY performed_at DESC. One composite serves both the filter and the sort;
+    # a btree scans backwards, so no DESC index is needed. This subsumes the old
+    # standalone user_id index, which migration 008 drops.
+    __table_args__ = (Index("ix_workouts_user_performed", "user_id", "performed_at"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -74,7 +89,6 @@ class Workout(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     performed_at: Mapped[date] = mapped_column(Date, nullable=False, index=True)

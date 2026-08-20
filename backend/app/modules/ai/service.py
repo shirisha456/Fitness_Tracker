@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 
 import openai
 from openai import AsyncOpenAI
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -34,7 +35,13 @@ _COACH_SYSTEM_PROMPT = (
 )
 
 
+# Cached per API key. Constructing AsyncOpenAI per request threw away its connection
+# pool every time; the key is part of the cache key so a rotated key still takes effect.
+_cached_client: tuple[str, AsyncOpenAI] | None = None
+
+
 def _client() -> AsyncOpenAI:
+    global _cached_client
     settings = get_settings()
     if not settings.openai_api_key:
         raise AppException(
@@ -42,7 +49,34 @@ def _client() -> AsyncOpenAI:
             message="AI features are not configured.",
             status_code=503,
         )
-    return AsyncOpenAI(api_key=settings.openai_api_key)
+    if _cached_client is None or _cached_client[0] != settings.openai_api_key:
+        _cached_client = (
+            settings.openai_api_key,
+            AsyncOpenAI(
+                api_key=settings.openai_api_key,
+                timeout=settings.openai_timeout_seconds,
+                max_retries=1,
+            ),
+        )
+    return _cached_client[1]
+
+
+def _validate_llm_payload[T: BaseModel](model: type[T], raw: object) -> T:
+    """Validate a decoded LLM payload, translating a bad shape into a 502.
+
+    JSON mode constrains the model to *parseable* JSON, not to our schema — and a
+    response truncated at max_tokens isn't even parseable. Both used to escape as
+    an unhandled exception and surface as a generic 500; they're upstream failures,
+    so they belong with the other OpenAI errors as a 502.
+    """
+    try:
+        return model.model_validate(raw)
+    except ValidationError as exc:
+        raise AppException(
+            code="BAD_GATEWAY",
+            message="AI service returned an unexpected response.",
+            status_code=502,
+        ) from exc
 
 
 def _translate_openai_error(exc: Exception) -> AppException:
@@ -78,7 +112,14 @@ async def _complete_json(system_prompt: str, user_prompt: str, *, max_tokens: in
         raise _translate_openai_error(exc) from exc
 
     content = completion.choices[0].message.content
-    return json.loads(content or "{}")
+    try:
+        return json.loads(content or "{}")
+    except json.JSONDecodeError as exc:
+        raise AppException(
+            code="BAD_GATEWAY",
+            message="AI service returned a malformed response.",
+            status_code=502,
+        ) from exc
 
 
 async def _complete_text(messages: list[dict], *, max_tokens: int) -> str:
@@ -97,9 +138,13 @@ async def _complete_text(messages: list[dict], *, max_tokens: int) -> str:
 
 
 async def generate_workout(
-    db: AsyncSession, payload: GenerateWorkoutRequest
+    db: AsyncSession, user: User, payload: GenerateWorkoutRequest
 ) -> GeneratedWorkoutResponse:
-    exercises = await workouts_service.list_exercises(db)
+    # Prompt-visible exercises are scoped to the curated library plus this user's own
+    # custom entries. Exercise names are free text written by users, and they are
+    # concatenated verbatim into the system prompt below — an unscoped list would let
+    # any user inject instructions into every other user's prompt.
+    exercises = await workouts_service.list_exercises_for_prompt(db, user)
     name_to_id = {e.name.lower(): e.id for e in exercises}
     exercise_names = ", ".join(e.name for e in exercises)
 
@@ -118,7 +163,7 @@ async def generate_workout(
     )
 
     raw = await _complete_json(system_prompt, user_prompt, max_tokens=800)
-    llm_workout = LlmWorkout.model_validate(raw)
+    llm_workout = _validate_llm_payload(LlmWorkout, raw)
 
     resolved = [
         GeneratedExercise(
@@ -147,7 +192,7 @@ async def generate_meals(payload: GenerateMealRequest) -> GenerateMealResponse:
     )
 
     raw = await _complete_json(system_prompt, user_prompt, max_tokens=600)
-    return GenerateMealResponse.model_validate(raw)
+    return _validate_llm_payload(GenerateMealResponse, raw)
 
 
 async def chat(payload: ChatRequest) -> str:
@@ -188,4 +233,4 @@ async def get_recommendations(db: AsyncSession, user: User) -> RecommendationsRe
         'Respond with JSON matching this shape: {"recommendations": [string, ...]}'
     )
     raw = await _complete_json(system_prompt, "\n".join(context_lines), max_tokens=300)
-    return RecommendationsResponse.model_validate(raw)
+    return _validate_llm_payload(RecommendationsResponse, raw)
