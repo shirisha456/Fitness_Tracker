@@ -19,7 +19,7 @@ async def generate_workout(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    workout = await ai_service.generate_workout(db, payload)
+    workout = await ai_service.generate_workout(db, user, payload)
     return {"data": workout}
 
 

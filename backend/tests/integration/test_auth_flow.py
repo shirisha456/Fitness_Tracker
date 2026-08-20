@@ -93,6 +93,39 @@ async def test_refresh_rotates_tokens(client, register_payload):
 
 
 @pytest.mark.asyncio
+async def test_refresh_reuse_revokes_every_other_session(client, register_payload):
+    """Replaying a rotated-past token must kill the user's OTHER sessions too.
+
+    Regression test. The revocation used to be flushed inside the request transaction
+    and then rolled back by the 401 that reports the reuse, so detection worked while
+    the security action silently did nothing — and asserting only on the 401 (as
+    test_refresh_rotates_tokens does) cannot tell the two apart.
+    """
+    await client.post("/api/v1/auth/register", json=register_payload)
+    credentials = {"email": register_payload["email"], "password": register_payload["password"]}
+
+    session_a = await client.post("/api/v1/auth/login", json=credentials)
+    session_b = await client.post("/api/v1/auth/login", json=credentials)
+    stolen_token = session_a.json()["data"]["refresh_token"]
+    other_session_token = session_b.json()["data"]["refresh_token"]
+
+    # Legitimate client rotates past the token an attacker also holds.
+    rotated = await client.post("/api/v1/auth/refresh", json={"refresh_token": stolen_token})
+    assert rotated.status_code == 200
+    rotated_token = rotated.json()["data"]["refresh_token"]
+
+    # Attacker replays the old one — detected.
+    reuse = await client.post("/api/v1/auth/refresh", json={"refresh_token": stolen_token})
+    assert reuse.status_code == 401
+    assert "reuse" in reuse.json()["error"]["message"].lower()
+
+    # ...and the whole token family is dead, not just the replayed token.
+    for dead_token in (other_session_token, rotated_token):
+        response = await client.post("/api/v1/auth/refresh", json={"refresh_token": dead_token})
+        assert response.status_code == 401
+
+
+@pytest.mark.asyncio
 async def test_logout_revokes_refresh_token(client, register_payload):
     await client.post("/api/v1/auth/register", json=register_payload)
     login = await client.post(

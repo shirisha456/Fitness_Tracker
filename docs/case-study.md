@@ -39,8 +39,8 @@ A handful of real rough edges were kept rather than silently cleaned up:
 - **No `.dockerignore` anywhere in the repository** (Phase 14), which makes the frontend Docker
   build transfer `node_modules` as build context — slow, but correct.
 - **`run_all_tests.ps1`/`run_verify.ps1`** (Phase 16) hardcode an absolute path
-  (`C:\Users\Shirisha\fitforge\...`) rather than resolving the repo root dynamically — works
-  today only because Windows path lookups are case-insensitive.
+  (`C:\Users\Shirisha\Fitness_tracker\...`) rather than resolving the repo root dynamically —
+  fragile if the repo is ever moved or renamed again.
 
 ## Infrastructure discipline
 

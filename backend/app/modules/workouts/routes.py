@@ -34,7 +34,7 @@ async def create_exercise(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    exercise = await workouts_service.get_or_create_exercise(db, payload)
+    exercise = await workouts_service.get_or_create_exercise(db, user, payload)
     return {"data": workouts_service.to_exercise_response(exercise)}
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -36,6 +37,8 @@ from app.modules.auth.schemas import (
     TokenResponse,
     UserResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 # Precomputed Argon2 hash so failed logins still exercise verify_password (timing).
 _DUMMY_PASSWORD_HASH = hash_password("timing-safe-dummy-password")
@@ -143,8 +146,16 @@ async def refresh_tokens(
         raise AppException(code="UNAUTHORIZED", message="Invalid token", status_code=401)
 
     if stored.revoked_at is not None:
-        # Possible token reuse — revoke all active tokens for this user
+        # Possible token reuse — revoke all active tokens for this user.
+        #
+        # This MUST be committed before the 401 is raised. `get_db` rolls the request
+        # transaction back on any exception, so a flush alone would be undone by the
+        # very error that reports the reuse — detection would work while the actual
+        # security action silently did nothing. Committing here deliberately ends the
+        # request transaction early; nothing after this point writes.
         await _revoke_all_user_tokens(db, user_uuid)
+        await db.commit()
+        logger.warning("refresh_token_reuse_detected user_id=%s jti=%s", user_uuid, token_uuid)
         raise AppException(
             code="UNAUTHORIZED",
             message="Refresh token reuse detected. Please log in again.",
@@ -445,10 +456,25 @@ async def reset_password(db: AsyncSession, payload: ResetPasswordRequest) -> Non
 def _enqueue_verification_email(to_email: str, raw_token: str) -> None:
     from app.modules.auth.tasks import send_verification_email
 
-    send_verification_email.delay(to_email, raw_token)
+    _enqueue(send_verification_email, to_email, raw_token, kind="verification")
 
 
 def _enqueue_password_reset_email(to_email: str, raw_token: str) -> None:
     from app.modules.auth.tasks import send_password_reset_email
 
-    send_password_reset_email.delay(to_email, raw_token)
+    _enqueue(send_password_reset_email, to_email, raw_token, kind="password_reset")
+
+
+def _enqueue(task, to_email: str, raw_token: str, *, kind: str) -> None:
+    """Queue a transactional email without letting the broker fail the request.
+
+    `.delay()` is itself a network call to Redis. Leaving it unguarded meant a broker
+    outage propagated out of the route and `get_db` rolled the transaction back — so
+    Redis being down took registration and password reset down with it. The email is
+    the non-essential half of both flows: registration still succeeds and the user can
+    recover via POST /auth/resend-verification or by requesting another reset link.
+    """
+    try:
+        task.delay(to_email, raw_token)
+    except Exception:
+        logger.exception("email_enqueue_failed kind=%s to=%s", kind, to_email)

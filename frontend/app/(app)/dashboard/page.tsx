@@ -72,6 +72,7 @@ export default async function DashboardPage() {
             title="Today's workout"
             description="No workout scheduled for today."
             ctaLabel="Plan a workout"
+            ctaHref="/workouts/new"
           />
         )}
 
@@ -93,6 +94,7 @@ export default async function DashboardPage() {
             title="Calories"
             description="No meals logged today."
             ctaLabel="Log a meal"
+            ctaHref="/nutrition/meals/new"
           />
         )}
 
@@ -118,6 +120,7 @@ export default async function DashboardPage() {
             title="Progress"
             description="Start tracking to see your progress here."
             ctaLabel="Add a measurement"
+            ctaHref="/progress/measurements/new"
           />
         )}
       </div>

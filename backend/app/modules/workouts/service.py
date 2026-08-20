@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import date
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -35,24 +35,53 @@ async def list_exercises(
     return list(result.all())
 
 
-async def get_or_create_exercise(db: AsyncSession, payload: ExerciseCreate) -> Exercise:
+async def list_exercises_for_prompt(db: AsyncSession, user: User) -> list[Exercise]:
+    """Exercises safe to place in this user's AI prompt: the curated library + their own.
+
+    Exercise names are free text that any authenticated user can write via
+    POST /exercises, and generate_workout concatenates them verbatim into the system
+    prompt. Scoping to `created_by_user_id IS NULL OR = me` means a name another user
+    invented can never reach this user's prompt. The exercise *picker* is deliberately
+    left unscoped — whether custom exercises are shared is a product decision, not a
+    security one.
+    """
+    stmt = (
+        select(Exercise)
+        .where(
+            or_(
+                Exercise.created_by_user_id.is_(None),
+                Exercise.created_by_user_id == user.id,
+            )
+        )
+        .order_by(Exercise.name)
+    )
+    result = await db.scalars(stmt)
+    return list(result.all())
+
+
+async def get_or_create_exercise(
+    db: AsyncSession, user: User, payload: ExerciseCreate
+) -> Exercise:
     """Case-insensitive get-or-create against the shared exercise library."""
     name = payload.name.strip()
     existing = await db.scalar(select(Exercise).where(func.lower(Exercise.name) == name.lower()))
     if existing is not None:
         return existing
 
-    exercise = Exercise(name=name, category=payload.category)
-    db.add(exercise)
+    exercise = Exercise(name=name, category=payload.category, created_by_user_id=user.id)
     try:
-        await db.flush()
+        # SAVEPOINT: losing the race must undo only this INSERT. The previous
+        # `await db.rollback()` discarded the caller's entire request transaction
+        # to recover from a duplicate name.
+        async with db.begin_nested():
+            db.add(exercise)
+            await db.flush()
     except IntegrityError:
-        # Lost a race with a concurrent create of the same name.
-        await db.rollback()
         existing = await db.scalar(
             select(Exercise).where(func.lower(Exercise.name) == name.lower())
         )
-        assert existing is not None
+        if existing is None:
+            raise
         return existing
     return exercise
 

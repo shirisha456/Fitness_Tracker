@@ -5,16 +5,21 @@ from __future__ import annotations
 import os
 
 # Must run before any app imports so Settings / engine see test values.
-os.environ["SECRET_KEY"] = "test-secret-key-for-pytest-only"
-os.environ["DATABASE_URL"] = (
-    "postgresql+asyncpg://fitforge:fitforge@localhost:5432/fitforge"
+#
+# setdefault, not assignment: the db_engine fixture runs drop_all/create_all, so
+# hard-coding localhost:5432 pointed the suite at whatever happened to hold that port
+# — including another project's database. Respecting an already-set DATABASE_URL lets
+# CI and a developer with a port conflict aim the suite somewhere safe.
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-pytest-only")
+os.environ.setdefault(
+    "DATABASE_URL", "postgresql+asyncpg://fitforge:fitforge@localhost:5432/fitforge"
 )
-os.environ["REDIS_URL"] = "redis://localhost:6379/0"
+os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ["ENVIRONMENT"] = "test"
 os.environ["EMAIL_BACKEND"] = "console"
 os.environ["CELERY_TASK_ALWAYS_EAGER"] = "true"
-os.environ["FRONTEND_URL"] = "http://localhost:3000"
-os.environ["CORS_ORIGINS"] = "http://localhost:3000,http://localhost"
+os.environ.setdefault("FRONTEND_URL", "http://localhost:3000")
+os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000,http://localhost")
 
 import pytest
 from httpx import ASGITransport, AsyncClient

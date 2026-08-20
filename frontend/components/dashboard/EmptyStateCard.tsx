@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,11 +9,13 @@ export function EmptyStateCard({
   title,
   description,
   ctaLabel,
+  ctaHref,
 }: {
   icon: LucideIcon;
   title: string;
   description: string;
   ctaLabel: string;
+  ctaHref: string;
 }) {
   return (
     <Card>
@@ -25,11 +27,8 @@ export function EmptyStateCard({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Button variant="outline" size="sm" disabled className="gap-2">
-          {ctaLabel}
-          <Badge variant="secondary" className="text-[10px]">
-            Soon
-          </Badge>
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href={ctaHref}>{ctaLabel}</Link>
         </Button>
       </CardContent>
     </Card>
