@@ -25,6 +25,8 @@ from app.modules.ai.schemas import (
 from app.modules.auth.models import User
 from app.modules.nutrition import service as nutrition_service
 from app.modules.progress import service as progress_service
+from app.modules.training_insights import service as training_insights_service
+from app.modules.training_insights.schemas import ExerciseInsight
 from app.modules.workouts import service as workouts_service
 
 _COACH_SYSTEM_PROMPT = (
@@ -212,9 +214,15 @@ async def get_recommendations(db: AsyncSession, user: User) -> RecommendationsRe
     nutrition_summary = await nutrition_service.get_daily_summary(db, user, today)
     measurements = await progress_service.list_measurements(db, user, date_to=today)
 
+    # Already-computed deterministic verdicts, not raw history. The coach explains
+    # these signals; it never derives them. See modules/training_insights.
+    training_signals = await training_insights_service.build_coach_signals(db, user)
+
     context_lines = [
         f"Workouts logged in the last 7 days: {len(recent_workouts)}",
         f"Calories logged today: {nutrition_summary.total_calories}",
+        "Recent training signals (already computed — do not recalculate or contradict):",
+        *(f"- {signal}" for signal in training_signals),
     ]
     if measurements:
         latest = measurements[0]
@@ -234,3 +242,60 @@ async def get_recommendations(db: AsyncSession, user: User) -> RecommendationsRe
     )
     raw = await _complete_json(system_prompt, "\n".join(context_lines), max_tokens=300)
     return _validate_llm_payload(RecommendationsResponse, raw)
+
+
+_EXPLAIN_SYSTEM_PROMPT = (
+    "You are Fitness Tracker's AI fitness coach. You will be given a training "
+    "analysis that has ALREADY been computed from the user's logged workouts. "
+    "Restate it in one or two short, plain, encouraging sentences addressed to the "
+    "user. Do not calculate anything. Do not introduce any number, date or "
+    "classification that is not in the analysis. Do not give medical advice or "
+    "comment on pain or injury. If the analysis says the data is insufficient, say "
+    "so plainly rather than guessing."
+)
+
+
+def build_insight_prompt(insight: ExerciseInsight) -> str:
+    """The compact, already-computed summary the model is allowed to see.
+
+    Deliberately not the user's workout history: the model receives a handful of
+    derived numbers and the verdict, so it has nothing to recalculate and nothing
+    private to leak. Free-text workout notes are never included.
+    """
+    lines = [
+        f"Exercise: {insight.exercise.name}",
+        f"Classification: {insight.classification.value}",
+        f"Sessions analyzed: {insight.sessions_analyzed}",
+        f"Metric basis: {insight.metric_basis.value}",
+    ]
+    if insight.date_range is not None:
+        lines.append(
+            f"Date range: {insight.date_range.from_date.isoformat()} to "
+            f"{insight.date_range.to_date.isoformat()}"
+        )
+    if insight.current_weight_kg is not None:
+        lines.append(f"Latest top load: {insight.current_weight_kg} kg")
+    if insight.previous_weight_kg is not None:
+        lines.append(f"Previous top load: {insight.previous_weight_kg} kg")
+    if insight.primary_change_percent is not None:
+        lines.append(f"Change in primary metric: {insight.primary_change_percent}%")
+    if insight.volume_change_percent is not None:
+        lines.append(f"Change in session volume: {insight.volume_change_percent}%")
+    if insight.evidence:
+        lines.append("Evidence:")
+        lines.extend(f"- {item}" for item in insight.evidence)
+    return "\n".join(lines)
+
+
+async def explain_training_insight(insight: ExerciseInsight) -> str:
+    """Reword an already-computed insight. Raises AppException on any AI failure.
+
+    The caller in training_insights.service treats that exception as "keep the
+    deterministic text" — the classification and every metric are computed before
+    this function is reached, so AI availability cannot change them.
+    """
+    messages = [
+        {"role": "system", "content": _EXPLAIN_SYSTEM_PROMPT},
+        {"role": "user", "content": build_insight_prompt(insight)},
+    ]
+    return (await _complete_text(messages, max_tokens=180)).strip()
