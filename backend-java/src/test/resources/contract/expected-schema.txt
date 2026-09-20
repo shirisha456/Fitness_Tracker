@@ -1,0 +1,209 @@
+# Expected PostgreSQL schema — the contract between the two backends.
+#
+# Captured by introspecting information_schema/pg_catalog on a database built by running
+# `alembic upgrade head` (Python backend, revision 008_exercise_scope_indexes) against an
+# empty PostgreSQL 16 instance.
+#
+# backend-java/src/main/resources/db/migration/V1__baseline_schema.sql must reproduce this
+# exactly; SchemaParityTest asserts it on every build. Regenerate only when a migration
+# deliberately changes the schema, and change both backends together while both are live.
+
+=== alembic_version ===
+  version_num              character varying(32)        NOT NULL
+  CONSTRAINT alembic_version_pkc: PRIMARY KEY (version_num)
+  CREATE UNIQUE INDEX alembic_version_pkc ON public.alembic_version USING btree (version_num)
+
+=== body_measurements ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  user_id                  uuid                         NOT NULL
+  recorded_at              date                         NOT NULL
+  weight_kg                double precision             NULL
+  body_fat_pct             double precision             NULL
+  waist_cm                 double precision             NULL
+  chest_cm                 double precision             NULL
+  hips_cm                  double precision             NULL
+  arm_cm                   double precision             NULL
+  notes                    character varying(500)       NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  CONSTRAINT body_measurements_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT body_measurements_pkey: PRIMARY KEY (id)
+  CONSTRAINT body_measurements_user_id_recorded_at_key: UNIQUE (user_id, recorded_at)
+  CREATE UNIQUE INDEX body_measurements_pkey ON public.body_measurements USING btree (id)
+  CREATE UNIQUE INDEX body_measurements_user_id_recorded_at_key ON public.body_measurements USING btree (user_id, recorded_at)
+  CREATE INDEX ix_body_measurements_recorded_at ON public.body_measurements USING btree (recorded_at)
+  CREATE INDEX ix_body_measurements_user_id ON public.body_measurements USING btree (user_id)
+
+=== email_verification_tokens ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  user_id                  uuid                         NOT NULL
+  token_hash               character varying(255)       NOT NULL
+  expires_at               timestamp with time zone     NOT NULL
+  used_at                  timestamp with time zone     NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  CONSTRAINT email_verification_tokens_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT email_verification_tokens_pkey: PRIMARY KEY (id)
+  CONSTRAINT email_verification_tokens_token_hash_key: UNIQUE (token_hash)
+  CREATE UNIQUE INDEX email_verification_tokens_pkey ON public.email_verification_tokens USING btree (id)
+  CREATE UNIQUE INDEX email_verification_tokens_token_hash_key ON public.email_verification_tokens USING btree (token_hash)
+  CREATE INDEX ix_email_verification_tokens_user_id ON public.email_verification_tokens USING btree (user_id)
+  CREATE INDEX ix_email_verify_expires ON public.email_verification_tokens USING btree (expires_at) WHERE (used_at IS NULL)
+
+=== exercises ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  name                     character varying(255)       NOT NULL
+  category                 USER-DEFINED                 NOT NULL
+  muscle_group             character varying(100)       NULL
+  equipment                character varying(100)       NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  created_by_user_id       uuid                         NULL
+  CONSTRAINT fk_exercises_created_by_user_id: FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+  CONSTRAINT exercises_pkey: PRIMARY KEY (id)
+  CONSTRAINT exercises_name_key: UNIQUE (name)
+  CREATE UNIQUE INDEX exercises_name_key ON public.exercises USING btree (name)
+  CREATE UNIQUE INDEX exercises_pkey ON public.exercises USING btree (id)
+  CREATE INDEX ix_exercises_created_by_user_id ON public.exercises USING btree (created_by_user_id)
+  CREATE INDEX ix_exercises_name ON public.exercises USING btree (name)
+
+=== goals ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  user_id                  uuid                         NOT NULL
+  title                    character varying(255)       NOT NULL
+  target_weight_kg         double precision             NULL
+  target_date              date                         NULL
+  status                   USER-DEFINED                 NOT NULL DEFAULT 'active'::goal_status
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  CONSTRAINT goals_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT goals_pkey: PRIMARY KEY (id)
+  CREATE UNIQUE INDEX goals_pkey ON public.goals USING btree (id)
+  CREATE INDEX ix_goals_user_id ON public.goals USING btree (user_id)
+
+=== meals ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  user_id                  uuid                         NOT NULL
+  name                     character varying(255)       NOT NULL
+  logged_at                date                         NOT NULL
+  calories                 integer                      NOT NULL
+  protein_g                double precision             NULL
+  carbs_g                  double precision             NULL
+  fat_g                    double precision             NULL
+  notes                    character varying(500)       NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  CONSTRAINT meals_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT meals_pkey: PRIMARY KEY (id)
+  CREATE INDEX ix_meals_logged_at ON public.meals USING btree (logged_at)
+  CREATE INDEX ix_meals_user_logged ON public.meals USING btree (user_id, logged_at)
+  CREATE UNIQUE INDEX meals_pkey ON public.meals USING btree (id)
+
+=== password_reset_tokens ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  user_id                  uuid                         NOT NULL
+  token_hash               character varying(255)       NOT NULL
+  expires_at               timestamp with time zone     NOT NULL
+  used_at                  timestamp with time zone     NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  CONSTRAINT password_reset_tokens_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT password_reset_tokens_pkey: PRIMARY KEY (id)
+  CONSTRAINT password_reset_tokens_token_hash_key: UNIQUE (token_hash)
+  CREATE INDEX ix_password_reset_expires ON public.password_reset_tokens USING btree (expires_at) WHERE (used_at IS NULL)
+  CREATE INDEX ix_password_reset_tokens_user_id ON public.password_reset_tokens USING btree (user_id)
+  CREATE UNIQUE INDEX password_reset_tokens_pkey ON public.password_reset_tokens USING btree (id)
+  CREATE UNIQUE INDEX password_reset_tokens_token_hash_key ON public.password_reset_tokens USING btree (token_hash)
+
+=== profiles ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  user_id                  uuid                         NOT NULL
+  display_name             character varying(100)       NULL
+  date_of_birth            date                         NULL
+  sex                      USER-DEFINED                 NULL
+  height_cm                double precision             NULL
+  fitness_goal             character varying(255)       NULL
+  activity_level           USER-DEFINED                 NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  updated_at               timestamp with time zone     NOT NULL DEFAULT now()
+  CONSTRAINT profiles_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT profiles_pkey: PRIMARY KEY (id)
+  CONSTRAINT profiles_user_id_key: UNIQUE (user_id)
+  CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)
+  CREATE UNIQUE INDEX profiles_user_id_key ON public.profiles USING btree (user_id)
+
+=== refresh_tokens ===
+  id                       uuid                         NOT NULL
+  user_id                  uuid                         NOT NULL
+  token_hash               character varying(255)       NOT NULL
+  expires_at               timestamp with time zone     NOT NULL
+  revoked_at               timestamp with time zone     NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  user_agent               character varying(512)       NULL
+  ip_address               character varying(45)        NULL
+  CONSTRAINT refresh_tokens_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT refresh_tokens_pkey: PRIMARY KEY (id)
+  CREATE INDEX ix_refresh_tokens_expires ON public.refresh_tokens USING btree (expires_at) WHERE (revoked_at IS NULL)
+  CREATE INDEX ix_refresh_tokens_user_id ON public.refresh_tokens USING btree (user_id)
+  CREATE UNIQUE INDEX refresh_tokens_pkey ON public.refresh_tokens USING btree (id)
+
+=== users ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  email                    character varying(255)       NOT NULL
+  password_hash            character varying(255)       NULL
+  role                     USER-DEFINED                 NOT NULL DEFAULT 'user'::user_role
+  email_verified           boolean                      NOT NULL DEFAULT false
+  is_active                boolean                      NOT NULL DEFAULT true
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  updated_at               timestamp with time zone     NOT NULL DEFAULT now()
+  deleted_at               timestamp with time zone     NULL
+  CONSTRAINT users_pkey: PRIMARY KEY (id)
+  CONSTRAINT users_email_key: UNIQUE (email)
+  CREATE INDEX ix_users_email ON public.users USING btree (email)
+  CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)
+  CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)
+
+=== water_entries ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  user_id                  uuid                         NOT NULL
+  logged_at                date                         NOT NULL
+  amount_ml                integer                      NOT NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  CONSTRAINT water_entries_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT water_entries_pkey: PRIMARY KEY (id)
+  CREATE INDEX ix_water_entries_logged_at ON public.water_entries USING btree (logged_at)
+  CREATE INDEX ix_water_entries_user_logged ON public.water_entries USING btree (user_id, logged_at)
+  CREATE UNIQUE INDEX water_entries_pkey ON public.water_entries USING btree (id)
+
+=== workout_exercises ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  workout_id               uuid                         NOT NULL
+  exercise_id              uuid                         NOT NULL
+  order_index              integer                      NOT NULL DEFAULT 0
+  sets                     integer                      NOT NULL
+  reps                     integer                      NOT NULL
+  weight_kg                double precision             NULL
+  notes                    character varying(500)       NULL
+  CONSTRAINT workout_exercises_exercise_id_fkey: FOREIGN KEY (exercise_id) REFERENCES exercises(id)
+  CONSTRAINT workout_exercises_workout_id_fkey: FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
+  CONSTRAINT workout_exercises_pkey: PRIMARY KEY (id)
+  CREATE INDEX ix_workout_exercises_workout_id ON public.workout_exercises USING btree (workout_id)
+  CREATE UNIQUE INDEX workout_exercises_pkey ON public.workout_exercises USING btree (id)
+
+=== workouts ===
+  id                       uuid                         NOT NULL DEFAULT gen_random_uuid()
+  user_id                  uuid                         NOT NULL
+  name                     character varying(255)       NOT NULL
+  performed_at             date                         NOT NULL
+  notes                    character varying(2000)      NULL
+  created_at               timestamp with time zone     NOT NULL DEFAULT now()
+  updated_at               timestamp with time zone     NOT NULL DEFAULT now()
+  CONSTRAINT workouts_user_id_fkey: FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT workouts_pkey: PRIMARY KEY (id)
+  CREATE INDEX ix_workouts_performed_at ON public.workouts USING btree (performed_at)
+  CREATE INDEX ix_workouts_user_performed ON public.workouts USING btree (user_id, performed_at)
+  CREATE UNIQUE INDEX workouts_pkey ON public.workouts USING btree (id)
+
+=== ENUM TYPES ===
+  exercise_category: strength, cardio, mobility, other
+  goal_status: active, achieved, abandoned
+  profile_activity_level: sedentary, light, moderate, active, very_active
+  profile_sex: male, female, unspecified
+  user_role: user, admin
+
+=== SEEDED EXERCISES ===
+  39 rows

@@ -53,6 +53,26 @@ failure. Live interactive docs are available at `/api/docs` (Swagger UI) wheneve
 | PUT | `/workouts/{id}` | bearer | Full replace |
 | DELETE | `/workouts/{id}` | bearer | |
 
+## Training insights
+
+Deterministic analytics over the caller's own workout history. Every response carries
+`sessions_analyzed`, a `date_range` and an `evidence[]` list, so any verdict can be traced back
+to the numbers it came from. Rules and thresholds: [adaptive-training.md](adaptive-training.md).
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/training/overview` | bearer | Consistency, 7-day volume vs the previous 7 days, and per-exercise verdicts (most recently trained first) |
+| GET | `/training/recommendations` | bearer | Only actionable suggestions, each with its evidence |
+| GET | `/training/exercises/{id}/history` | bearer | `?limit=` (1–50). Session table plus personal bests, which are computed over the full history before trimming |
+| GET | `/training/exercises/{id}/insights` | bearer | `?explain=true` asks the AI coach to reword the explanation. Metrics and classification are identical either way; any AI failure falls back to deterministic text and still returns `200` |
+
+`classification` is one of `progressing`, `stable`, `possible_plateau`, `declining`,
+`insufficient_data`, `not_applicable`. `suggestion.kind` is one of `maintain`,
+`small_progression`, `review_exercise`, `insufficient_history`, `consult_professional`.
+
+An unknown exercise id returns `404`. An exercise the caller has never logged returns
+`insufficient_data` with no metrics — never another user's history.
+
 ## Nutrition
 
 | Method | Path | Auth | Notes |

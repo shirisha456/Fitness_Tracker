@@ -1,0 +1,11 @@
+label:        stress-java-fixed
+target:       http://api-java:8000/api/v1
+commit:       311159692ab6a4c4120d347126da147b41911897
+dirty:        yes
+date:         2026-09-19T21:53:22Z
+host:         Darwin arm64
+cpus:         10
+memory:       16 GB
+docker cpus:  10
+docker mem:   7 GB
+k6:           grafana/k6:0.53.0

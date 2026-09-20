@@ -46,3 +46,13 @@ Thumbs.db
 
 # Alembic
 # Keep migrations tracked; ignore local overrides if any
+
+# Java
+backend-java/target/
+
+# Benchmark artifacts
+# summary.json and environment.txt are kept for every run — they hold all the metrics.
+# The rejected stress runs' console logs are 4-12 MB each and are almost entirely one
+# repeated connection-error line, so only the reproducible runs' logs are tracked.
+# See perf/results/README.md.
+perf/results/stress-*/run.log

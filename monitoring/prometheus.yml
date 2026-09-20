@@ -1,0 +1,26 @@
+# Scrapes the Java backend's Actuator endpoint over the Compose network.
+#
+# The management port (9000) is not published to the host. That network isolation is the
+# access control for /actuator/** — see docker-compose.yml. Prometheus reaches it because
+# it is on the same network, and nothing outside that network can.
+global:
+  scrape_interval: 5s      # short, because these are load-test windows, not months of history
+  evaluation_interval: 15s
+  external_labels:
+    env: local
+
+scrape_configs:
+  - job_name: fitness-tracker-java
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["api-java:9000"]
+        labels:
+          service: api-java
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+# The Python backend exposes no metrics endpoint, so there is nothing to scrape from it.
+# That asymmetry is worth stating plainly: side-by-side latency comparisons between the two
+# backends have to come from the load generator's own measurements, not from here.

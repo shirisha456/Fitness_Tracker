@@ -1,0 +1,35 @@
+{
+  "_comment": "Argon2 hashes produced by the Python backend (app.core.security.hash_password, argon2-cffi PasswordHasher defaults). The Java Argon2PasswordEncoder must verify every one of these. Regenerate only if the Python hashing parameters change.",
+  "algorithm": "argon2id",
+  "version": 19,
+  "parameters": {
+    "memory_cost_kib": 65536,
+    "time_cost": 3,
+    "parallelism": 4,
+    "hash_length": 32,
+    "salt_length": 16
+  },
+  "java_encoder_construction": "new Argon2PasswordEncoder(saltLength=16, hashLength=32, parallelism=4, memory=65536, iterations=3) -- Spring's defaults are parallelism=1, memory=16384, iterations=2 and would write weaker hashes than the existing corpus.",
+  "fixtures": [
+    {
+      "password": "SecurePass123!",
+      "hash": "$argon2id$v=19$m=65536,t=3,p=4$1PjwY00xZvbd62J3dWwlgg$oL3KeYkz96zQNEp8SycBpuRyF+WiUjxsV1hgpjGo17U",
+      "note": "typical password from the test suite"
+    },
+    {
+      "password": "aB3$aB3$",
+      "hash": "$argon2id$v=19$m=65536,t=3,p=4$p9deDJZddnksMkO0BEDZFQ$2ExL/KtVGNyCjhSKyuLi0hoBDkGDz6uOlilFZqrEcIA",
+      "note": "minimum length accepted by the register validator"
+    },
+    {
+      "password": "Pä55wörd!Ünïcode",
+      "hash": "$argon2id$v=19$m=65536,t=3,p=4$GGSVl7x/yaoE/GvrUjoWlA$0kf2j5o5jiVtzVRxXcnJRzeaZlNRhrXEYILnUYAtvyc",
+      "note": "non-ASCII characters"
+    },
+    {
+      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "hash": "$argon2id$v=19$m=65536,t=3,p=4$ivVvCQESEYUtn53WB16VNQ$d03QFGbDx0Bode8LWuV+Ld/BUeAPEmI9JYNtY7YKVcg",
+      "note": "long password near the 128-char maximum"
+    }
+  ]
+}

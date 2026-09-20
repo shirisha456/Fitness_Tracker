@@ -64,12 +64,17 @@ backend/app/
     ├── nutrition/         meals, water entries, daily summary
     ├── progress/          body measurements, goals
     ├── profile/           single-row-per-user profile
-    └── ai/                 OpenAI-backed generation and chat
+    ├── training_insights/  deterministic analytics over workout history (owns no tables)
+    └── ai/                 OpenAI-backed generation, chat, and insight explanation
 ```
 
 Every module follows the same internal shape: `models.py` (SQLAlchemy ORM), `schemas.py`
 (Pydantic request/response), `service.py` (business logic, DB access), `routes.py` (FastAPI
-router). Routes never touch the DB directly — they call into `service.py`, which is what the
+router). `training_insights` is the one exception: it owns no tables, so it has no `models.py`,
+and it splits the usual `service.py` into `repository.py` (all DB access), `analytics.py` (pure
+functions — no DB, no clock, no network) and `rules.py` (every threshold, as documentation).
+That split is what makes its verdicts unit-testable without a database — see
+[ADR 006](adr/006-deterministic-analytics-before-llm.md). Routes never touch the DB directly — they call into `service.py`, which is what the
 test suite exercises through the real HTTP layer via `tests/conftest.py`'s `client` fixture.
 
 ## Frontend layout
