@@ -1,0 +1,11 @@
+label:        java-only-sanity
+target:       http://api-java:8000/api/v1
+commit:       7199d4469943c1e43d42f96f823fcdf2d26f9835
+dirty:        yes
+date:         2026-09-20T01:16:31Z
+host:         Darwin arm64
+cpus:         10
+memory:       16 GB
+docker cpus:  10
+docker mem:   7 GB
+k6:           grafana/k6:0.53.0

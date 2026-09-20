@@ -137,6 +137,25 @@ produced the most dramatic-looking numbers.
 - The 5,000 req/s stress figures are recorded in `perf/results/` for provenance but are
   **not** cited as results.
 
+## Post-cleanup sanity check
+
+After the repository was made Java-only, the same `login-contention` benchmark was re-run
+against the rebuilt image:
+
+| Metric | Recorded AFTER | Post-cleanup re-run |
+|---|---|---|
+| READ p95 | 2.41 ms | 2.79 ms |
+| READ p99 | 6.06 ms | 6.22 ms |
+| Throughput | 206.6 req/s | 206.4 req/s |
+| Errors | 0.000% | 0.000% |
+
+**This is a regression check, not a new result, and it does not replace the figures above.**
+The cleanup removed three containers from the host, so the machine is no longer in the state
+the BEFORE run was measured in. The published comparison is valid precisely because both of
+its sides were measured under identical conditions; mixing in a number from a different host
+state would break that. What this run establishes is only that nothing regressed — the
+cleanup touched comments, documentation and dead services, not request-path code.
+
 ## Reproducing
 
 ```
