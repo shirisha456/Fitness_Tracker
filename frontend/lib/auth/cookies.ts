@@ -6,7 +6,7 @@ export const REFRESH_COOKIE = "ff_refresh";
 const isProd = process.env.NODE_ENV === "production";
 
 // Ceiling for how long the browser retains the cookie; actual validity is always
-// enforced by FastAPI regardless of this value, so drift from backend config is harmless.
+// enforced by the backend regardless of this value, so drift from backend config is harmless.
 const REFRESH_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
 export type TokenPair = {

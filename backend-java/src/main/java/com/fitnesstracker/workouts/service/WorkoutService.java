@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Workout CRUD.
  *
- * <p>Ownership is enforced per query, the way the Python services do it: a workout
+ * <p>Ownership is enforced per query, the way the previous implementations do it: a workout
  * belonging to someone else is <b>404</b>, never 403 — whether a given id exists is not
  * something another user should be able to learn.
  */
@@ -85,7 +85,7 @@ public class WorkoutService {
      * Resolves every referenced exercise in <b>one</b> query, then builds the child rows.
      *
      * <p>Looking each id up individually would be an N+1 on write. Unknown ids are reported
-     * together, in the Python message format.
+     * together, in the documented message format.
      */
     private List<WorkoutExercise> buildEntries(List<WorkoutExerciseRequest> requested) {
         if (requested.isEmpty()) {

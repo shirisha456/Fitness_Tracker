@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
 
-/** Create and update share one shape — {@code PUT} is a full replace, as in Python. */
+/** Create and update share one shape — {@code PUT} is a full replace, as in the reference implementation. */
 public record WorkoutRequest(
         @NotBlank @Size(min = 1, max = 255) String name,
         @NotNull LocalDate performedAt,

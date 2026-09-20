@@ -33,7 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * repository inside the same transaction, would pass against an implementation that
  * silently revokes nothing — which is exactly the regression this guards.
  *
- * <p>The Python implementation solves this by committing before raising; see
+ * <p>The reference implementation solved this by committing before raising; see
  * {@code app/modules/auth/service.py::refresh_tokens} and commit 6c32800, where this same
  * bug was found and fixed once already.
  */

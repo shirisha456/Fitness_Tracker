@@ -157,7 +157,7 @@ class NutritionApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("calorie and macro bounds match the Python schema")
+    @DisplayName("calorie and macro bounds match the documented schema")
     void validationBounds() throws Exception {
         for (Map<String, ?> invalid : java.util.List.<Map<String, ?>>of(
                 Map.of("name", "Too many", "logged_at", "2026-09-10", "calories", 20001),

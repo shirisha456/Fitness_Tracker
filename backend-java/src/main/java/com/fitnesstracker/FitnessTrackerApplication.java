@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 // Scheduling drives the email worker's poll and reclaim loops. There are no cron
-// jobs: Celery Beat scheduled nothing, so nothing was migrated.
+// jobs: the previous queue system Beat scheduled nothing, so nothing was migrated.
 @EnableScheduling
 @SpringBootApplication
 public class FitnessTrackerApplication {

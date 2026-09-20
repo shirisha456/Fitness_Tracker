@@ -1,5 +1,12 @@
 # Phase 13 — Frontend Dashboard
 
+> **Historical document.** This records work done when the backend was implemented in
+> Python/FastAPI, or the rewrite from it. That implementation is no longer part of the
+> architecture and is not deployed; it remains in git history only (tag
+> `pre-java-only-cleanup`, branch `legacy-python-backend`). Kept for context, not as a
+> description of how the system works today — see [architecture.md](architecture.md).
+
+
 The dashboard — the last frontend phase. With this done, `/dashboard` finally resolves instead
 of 404ing (every earlier phase's login flow redirected there).
 

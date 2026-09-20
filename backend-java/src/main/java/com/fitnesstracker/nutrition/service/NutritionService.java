@@ -110,7 +110,7 @@ public class NutritionService {
      * Two aggregate queries, not a load-and-sum in Java.
      *
      * <p>Summing in the database keeps the work proportional to the day, not to the user's
-     * whole history, and is what the Python implementation does.
+     * whole history, and is what the previous implementation does.
      */
     @Transactional(readOnly = true)
     public DailyNutritionSummary dailySummary(User user, LocalDate day) {

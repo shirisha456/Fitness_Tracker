@@ -12,7 +12,7 @@ export type AuthedFetchResult = {
 };
 
 /**
- * Server-only: calls FastAPI with the caller's access token, retrying once via a silent
+ * Server-only: calls the backend with the caller's access token, retrying once via a silent
  * refresh on a 401. The calling Route Handler is responsible for setting/clearing cookies
  * on its own response based on `refreshedTokens` / `unauthenticated`.
  */

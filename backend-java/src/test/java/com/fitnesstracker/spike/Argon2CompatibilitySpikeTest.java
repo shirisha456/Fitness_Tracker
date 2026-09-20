@@ -21,11 +21,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Risk R2 — the Java backend must verify the Argon2 hashes the Python backend already
+ * Risk R2 — the Java backend must verify the Argon2 hashes the previous implementation already
  * wrote, or every existing user is locked out the moment traffic moves to Java.
  *
  * <p>The fixtures in {@code contract/argon2-fixtures.json} were produced by the real
- * Python implementation ({@code app.core.security.hash_password}), not by Java. Verifying
+ * reference implementation, not by Java. Verifying
  * a Java-made hash with a Java verifier would prove nothing about compatibility.
  */
 class Argon2CompatibilitySpikeTest {
@@ -43,7 +43,7 @@ class Argon2CompatibilitySpikeTest {
     @BeforeAll
     static void loadFixtures() throws IOException {
         // Deliberately the single shared file at the repository root rather than a copy
-        // under test resources, so Python and Java cannot drift apart silently.
+        // under test resources, so the reference implementation and Java cannot drift apart silently.
 
         fixtures = new ObjectMapper().readTree(ContractFixtures.read("argon2-fixtures.json"));
     }
@@ -59,15 +59,15 @@ class Argon2CompatibilitySpikeTest {
         return cases;
     }
 
-    @ParameterizedTest(name = "verifies a Python-produced hash: {2}")
+    @ParameterizedTest(name = "verifies a reference-produced hash: {2}")
     @MethodSource("pythonHashes")
-    void verifiesHashesProducedByPython(String password, String hash, String note) {
+    void verifiesReferenceProducedHashes(String password, String hash, String note) {
         assertThat(ENCODER.matches(password, hash))
-                .as("Java must verify the Python hash for: %s", note)
+                .as("Java must verify the the reference implementation hash for: %s", note)
                 .isTrue();
     }
 
-    @ParameterizedTest(name = "rejects a wrong password against a Python hash: {2}")
+    @ParameterizedTest(name = "rejects a wrong password against a the reference implementation hash: {2}")
     @MethodSource("pythonHashes")
     void rejectsWrongPasswords(String password, String hash, String note) {
         assertThat(ENCODER.matches(password + "-wrong", hash)).isFalse();
@@ -75,7 +75,7 @@ class Argon2CompatibilitySpikeTest {
     }
 
     @Test
-    @DisplayName("the configured encoder writes the same parameters Python writes")
+    @DisplayName("the configured encoder writes the same parameters the reference writes")
     void encoderWritesMatchingParameters() {
         JsonNode expected = fixtures.get("parameters");
 
@@ -135,8 +135,8 @@ class Argon2CompatibilitySpikeTest {
     }
 
     @Test
-    @DisplayName("Java-produced hashes are written to a file for Python to verify")
-    void emitsHashesForPythonToVerify() throws IOException {
+    @DisplayName("Java-produced hashes are written to a file for cross-checking")
+    void encoderOutputRoundTrips() throws IOException {
         List<String> lines = new ArrayList<>();
         for (JsonNode node : fixtures.get("fixtures")) {
             String password = node.get("password").asText();
@@ -148,7 +148,7 @@ class Argon2CompatibilitySpikeTest {
         Files.createDirectories(out.getParent());
         Files.write(out, lines);
 
-        // The reverse direction (Python verifying these) is asserted by the spike script,
+        // The reverse direction (the reference verifying these) was asserted during the migration,
         // because during the side-by-side period both backends write hashes the other reads.
         assertThat(Files.readAllLines(out)).hasSize(fixtures.get("fixtures").size());
     }

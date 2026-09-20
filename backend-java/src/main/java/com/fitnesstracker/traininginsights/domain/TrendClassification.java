@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * <p>Six, not four. {@code NOT_APPLICABLE} exists because sets and reps cannot express
  * distance or duration, so claiming a trend for a 5 km run logged as {@code 1 x 1} would
  * be fabricated; {@code DECLINING} exists because reporting a 15% load drop as "stable"
- * would be wrong. Both are implemented in the Python engine and must be preserved.
+ * would be wrong. Both are implemented in the previous implementation and must be preserved.
  */
 public enum TrendClassification {
     PROGRESSING("progressing"),

@@ -4,7 +4,7 @@ import com.fitnesstracker.common.api.ErrorResponse.ErrorDetail;
 import java.util.List;
 
 /**
- * The application's single error type, mirroring Python's {@code AppException}.
+ * The application's single error type, mirroring the documented error contract.
  *
  * <p>Carries the wire-level {@code code} and HTTP status explicitly so that services
  * decide the contract rather than the exception-handler guessing from an exception class.

@@ -221,7 +221,7 @@ Three, none of them per-exercise:
 | Query | Purpose |
 |---|---|
 | `fetch_exercise_history` | one exercise's rows, 365-day window |
-| `fetch_recent_history_by_exercise` | **every** exercise at once, 180-day window, grouped in Python |
+| `fetch_recent_history_by_exercise` | **every** exercise at once, 180-day window, grouped in application code |
 | `fetch_workout_dates` | workout dates only, for consistency |
 
 The overview is 2 queries regardless of how many exercises the user trains. Workout
@@ -313,7 +313,7 @@ Boundary tests are explicit about the thresholds: 100 → 102 kg (exactly 2.0%) 
 - Distance/duration columns would make cardio classifiable instead of `not_applicable`.
 - Estimated 1RM (Epley/Brzycki) would let sessions at different rep ranges be
   compared, which the current load basis cannot do.
-- A weekly Celery summary is the one genuinely asynchronous use for these signals.
+- A weekly digest is the one genuinely asynchronous use for these signals.
   Today's analytics are request-time by design: they are two indexed queries and a
   pass over a bounded row set, and moving them to a worker would add moving parts
   without fixing a measured problem.

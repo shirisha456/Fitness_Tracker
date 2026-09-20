@@ -2,80 +2,76 @@
 
 ## System overview
 
-Fitness Tracker is a three-tier system: a Next.js frontend acting as its own backend-for-frontend
-(BFF), a FastAPI backend, and PostgreSQL/Redis for storage and background work. nginx sits in
-front of both, splitting traffic by path.
+A Next.js frontend acting as a backend-for-frontend (BFF), a Java 21 / Spring Boot backend,
+and PostgreSQL/Redis for storage and background work. nginx sits in front and splits traffic
+by path.
 
 ```mermaid
-flowchart TB
-    Browser["Browser"]
+flowchart TD
+    Browser --> Nginx["nginx :80/:443"]
+    Nginx -->|"/api/v1/*"| Api["Spring Boot backend (api-java:8000)"]
+    Nginx -->|"/ and /api/*"| Web["Next.js BFF (frontend:3000)"]
+    Web -->|"server-side, BACKEND_INTERNAL_URL"| Api
 
-    subgraph Edge["nginx (:80 / :443)"]
-        direction TB
-        RouteV1["/api/v1/* "]
-        RouteBFF["/api/* and /*"]
+    subgraph Backend["Java 21 / Spring Boot"]
+        Api --> Modules["auth · workouts · nutrition · progress<br/>profile · traininginsights · ai · notifications"]
+        Modules --> Worker["EmailWorker (in-process)"]
     end
 
-    subgraph Backend["FastAPI backend (api:8000)"]
-        direction TB
-        Postgres[("PostgreSQL\n(asyncpg)")]
-        Redis[("Redis\n(Celery broker)")]
-        OpenAI["OpenAI\n(AI coach only)"]
-    end
-
-    subgraph Frontend["Next.js BFF (frontend:3000)"]
-        direction TB
-        RouteHandlers["Route Handlers\n(app/api/**)"]
-    end
-
-    subgraph Async["Background work"]
-        direction TB
-        Worker["Celery worker + beat"]
-        SMTP["SMTP\n(Mailhog dev / real SMTP prod)"]
-    end
-
-    Browser --> Edge
-    RouteV1 --> Backend
-    RouteBFF --> Frontend
-    Backend --> Postgres
-    Backend --> Redis
-    Backend --> OpenAI
-    RouteHandlers -. "BACKEND_INTERNAL_URL\n(direct, never through nginx)" .-> Backend
+    Api --> Pg[("PostgreSQL 16<br/>Flyway")]
+    Api --> Redis[("Redis 7<br/>Streams")]
     Worker --> Redis
-    Worker --> SMTP
+    Worker --> Smtp["SMTP / Mailhog"]
+    Api -.->|optional| Ai["AI provider"]
+    Api --> Actuator["Actuator :9000<br/>(unpublished)"]
+    Actuator --> Prom["Prometheus"] --> Graf["Grafana"]
 ```
 
-See [ADR 005](adr/005-nginx-path-routing-split.md) for why the nginx split is on the `/v1/`
-segment rather than per-resource, and [ADR 002](adr/002-bff-pattern-httponly-cookies.md) for why
-the BFF exists at all rather than the browser calling FastAPI directly.
+**Why the BFF exists.** The browser never holds a JWT. Next.js Route Handlers keep the
+access and refresh tokens in httpOnly cookies and call the backend server-side over the
+Docker network, so a token cannot be read by client-side JavaScript. That is the reason the
+BFF exists rather than the browser calling the API directly.
+
+**Synchronous vs asynchronous.** Everything the user waits for is a direct call into the
+backend and then PostgreSQL. The one asynchronous path is transactional email: registration
+and password reset append to a Redis Stream and return immediately, and an in-process worker
+consumes it. A Redis outage degrades to "no email", never to "registration failed".
 
 ## Backend layout
 
+`backend-java/src/main/java/com/fitnesstracker/`
+
 ```
-backend/app/
-├── config.py           Settings (pydantic-settings, env-driven)
-├── core/                Database engine, security (JWT/Argon2), email, exceptions,
-│                        logging, middleware, Redis client
-├── dependencies.py      get_db, get_current_user (FastAPI DI)
-├── api/v1/              health/ready probes, api_v1_router aggregation
-└── modules/
-    ├── auth/            users, refresh tokens, email verification, password reset
-    ├── workouts/         exercise library, user workouts
-    ├── nutrition/         meals, water entries, daily summary
-    ├── progress/          body measurements, goals
-    ├── profile/           single-row-per-user profile
-    ├── training_insights/  deterministic analytics over workout history (owns no tables)
-    └── ai/                 OpenAI-backed generation, chat, and insight explanation
+├── common/
+│   ├── api/          ApiResponse, ErrorResponse, ErrorCode — the shared envelope
+│   ├── exception/    AppException, GlobalExceptionHandler
+│   ├── persistence/  PgEnumUserType — native PostgreSQL enum binding
+│   ├── validation/   StrongPassword
+│   └── web/          CorrelationIdFilter, PgEnumConverterFactory
+├── config/           Jackson, password encoder, clock
+├── security/         JWT filter, TokenService, SecurityConfig
+├── health/           /api/v1/health and /api/v1/ready
+├── auth/             users, tokens, rotation, reuse detection, email verification
+├── workouts/         exercise library, workouts, workout-exercises
+├── nutrition/        meals, water entries, daily summary
+├── progress/         body measurements, goals
+├── profile/          one profile row per user
+├── traininginsights/ deterministic analytics (pure domain, no I/O)
+├── ai/               provider boundary, AiService, TrainingInsightExplainer
+└── notifications/    Redis Streams dispatcher and EmailWorker
 ```
 
-Every module follows the same internal shape: `models.py` (SQLAlchemy ORM), `schemas.py`
-(Pydantic request/response), `service.py` (business logic, DB access), `routes.py` (FastAPI
-router). `training_insights` is the one exception: it owns no tables, so it has no `models.py`,
-and it splits the usual `service.py` into `repository.py` (all DB access), `analytics.py` (pure
-functions — no DB, no clock, no network) and `rules.py` (every threshold, as documentation).
-That split is what makes its verdicts unit-testable without a database — see
-[ADR 006](adr/006-deterministic-analytics-before-llm.md). Routes never touch the DB directly — they call into `service.py`, which is what the
-test suite exercises through the real HTTP layer via `tests/conftest.py`'s `client` fixture.
+Every feature module follows the same shape: `entity/` (JPA), `dto/` (request and response
+records), `repository/` (Spring Data), `service/` (business logic), `controller/` (HTTP).
+Controllers do no business logic and services do no HTTP.
+
+Two module-level rules are load-bearing:
+
+- **`traininginsights/domain` is pure.** `TrainingAnalytics` and `AnalyticsNumbers` have no
+  repository, no clock injection beyond what is passed in, and no provider calls. That is
+  what makes a training verdict reproducible.
+- **The `ai` module may read, never compute.** It receives already-computed results and
+  rephrases them; it cannot change a classification or a metric.
 
 ## Frontend layout
 
@@ -130,19 +126,25 @@ flowchart LR
     WorkoutExercises --> Exercises
 ```
 
-Every migration is additive and hand-written (not autogenerated) — see `backend/alembic/env.py`,
+The schema is owned by Flyway (`backend-java/src/main/resources/db/migration`), and
+`spring.jpa.hibernate.ddl-auto=validate` means a drifting entity mapping fails startup rather
+than silently altering the database. Migrations are additive and hand-written —
 which only imports `auth.models` for metadata discovery, confirming the later migrations
-(003–006) were never relying on Alembic's autogenerate diffing against the full model set.
+so a release can be rolled back to the previous image without a schema change.
 
 ## Request lifecycle (example: creating a workout)
 
-1. Browser submits `WorkoutForm` → `POST /api/workouts` (Next.js Route Handler).
-2. The route handler calls `authedBackendFetch`, which attaches the access-token cookie and
-   calls FastAPI directly over the Docker network.
-3. FastAPI's `workouts_router` → `workouts_service.create_workout` → validates every
-   `exercise_id` exists, inserts `Workout` + `WorkoutExercise` rows, commits.
-4. Response flows back through the BFF (which may rotate cookies if a silent refresh happened)
-   to the browser, which redirects to the new workout's detail page.
+1. The browser POSTs to `/api/workouts` — the Next.js BFF, not the backend.
+2. The Route Handler reads the `ff_access` httpOnly cookie and calls
+   `http://api-java:8000/api/v1/workouts` over the Docker network.
+3. `JwtAuthenticationFilter` validates the token and populates the security context.
+4. `WorkoutController` binds and validates the request record.
+5. `WorkoutService` (inside a transaction) checks that every `exercise_id` is visible to
+   this user, then persists the workout and its exercises.
+6. The response is wrapped in the shared `ApiResponse` envelope and carries the
+   correlation id assigned by `CorrelationIdFilter`.
+7. If anything throws, `GlobalExceptionHandler` maps it to the shared error envelope — no
+   stack trace, SQL or provider detail ever reaches the client.
 
 ## Observability
 

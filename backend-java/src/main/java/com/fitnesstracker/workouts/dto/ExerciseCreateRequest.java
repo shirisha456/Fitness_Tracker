@@ -4,7 +4,7 @@ import com.fitnesstracker.workouts.entity.ExerciseCategory;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/** {@code category} defaults to {@code other}, as the Python schema does. */
+/** {@code category} defaults to {@code other}, as the documented schema does. */
 public record ExerciseCreateRequest(
         @NotBlank @Size(min = 1, max = 255) String name, ExerciseCategory category) {
 

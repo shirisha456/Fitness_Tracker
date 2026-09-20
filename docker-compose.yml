@@ -27,69 +27,48 @@ services:
       retries: 5
     restart: unless-stopped
 
-  api:
+
+  # The application backend. nginx routes /api/v1/ here and the Next.js BFF calls it
+  # directly over the Compose network.
+  api-java:
     build:
-      context: ./backend
+      context: ./backend-java
       dockerfile: Dockerfile
-    command: ["/bin/sh", "/app/scripts/entrypoint.sh"]
     env_file:
       - .env
     environment:
-      # Force Compose DNS names so a localhost .env cannot break containers.
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-fitforge}:${POSTGRES_PASSWORD:-fitforge}@db:5432/${POSTGRES_DB:-fitforge}
+      # Forced to the Compose DNS name so a localhost .env cannot point a container
+      # at the host.
+      DATABASE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-fitforge}
+      POSTGRES_USER: ${POSTGRES_USER:-fitforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fitforge}
       REDIS_URL: redis://redis:6379/0
-      SMTP_HOST: ${SMTP_HOST:-mailhog}
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      # Published so the API can be reached without going through nginx.
+      #
+      # The management port (9000) is NOT published. Actuator — including
+      # /actuator/prometheus — is reachable from inside the Compose network, where
+      # Prometheus will scrape it, and from nowhere else. That network isolation is the
+      # access control. /api/v1/health and /api/v1/ready stay on 8000 because nginx, the
+      # Docker healthcheck and the frontend all use them.
+      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-      mailhog:
-        condition: service_started
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      # Liveness, not readiness: /api/v1/ready additionally checks Postgres and Redis,
+      # and a readiness failure should not restart the container.
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     restart: unless-stopped
 
-  worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: celery -A celery_app worker -Q email,default --loglevel=info
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-fitforge}:${POSTGRES_PASSWORD:-fitforge}@db:5432/${POSTGRES_DB:-fitforge}
-      REDIS_URL: redis://redis:6379/0
-      SMTP_HOST: ${SMTP_HOST:-mailhog}
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      mailhog:
-        condition: service_started
-    restart: unless-stopped
 
-  beat:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: celery -A celery_app beat --loglevel=info
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-fitforge}:${POSTGRES_PASSWORD:-fitforge}@db:5432/${POSTGRES_DB:-fitforge}
-      REDIS_URL: redis://redis:6379/0
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
 
   mailhog:
     image: mailhog/mailhog:v1.0.1
@@ -106,9 +85,10 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api}
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api}
-      # Server-only: lets Route Handlers/Server Components call FastAPI directly over the
-      # Docker network instead of looping back out through nginx. Never exposed to the browser.
-      BACKEND_INTERNAL_URL: http://api:8000/api
+      # Server-only: lets Route Handlers/Server Components call the backend directly over
+      # the Docker network instead of looping back out through nginx. Never exposed to
+      # the browser.
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://api-java:8000/api}
     healthcheck:
       test:
         [
@@ -130,11 +110,58 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      api:
+      api-java:
         condition: service_healthy
       frontend:
         condition: service_healthy
     restart: unless-stopped
 
+  # --- Observability -------------------------------------------------------------------
+  # Both are bound to 127.0.0.1 only. Prometheus has no authentication and Grafana ships
+  # with a default password, so neither may listen on a public interface. Prometheus
+  # reaches Actuator on api-java:9000, which is not published to the host at all — that
+  # network isolation is the access control for /actuator/**.
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # Load-test windows, not long-term history.
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      api-java:
+        condition: service_healthy
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      # admin/admin is Grafana's own default and is acceptable only because this port is
+      # bound to loopback. Set GRAFANA_PASSWORD before exposing this anywhere.
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:

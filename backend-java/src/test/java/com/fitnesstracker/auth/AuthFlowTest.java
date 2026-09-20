@@ -25,7 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * The auth endpoints end to end, against the contract captured in
- * {@code docs/api-compatibility.md} from a running Python instance.
+ * {@code docs/api-compatibility.md} from a running reference instance.
  *
  * <p>Emails are delivered by {@link ConsoleEmailSender}, which captures them in memory —
  * no automated test ever sends a real one. The queue is bypassed here (the worker is
@@ -82,7 +82,7 @@ class AuthFlowTest extends PostgresIntegrationTest {
     // --- registration --------------------------------------------------------
 
     @Test
-    @DisplayName("register returns 201 with the user and the Python message")
+    @DisplayName("register returns 201 with the user and the documented message")
     void registerSucceeds() throws Exception {
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +91,7 @@ class AuthFlowTest extends PostgresIntegrationTest {
                                 "password", PASSWORD,
                                 "password_confirm", PASSWORD))))
                 .andExpect(status().isCreated())
-                // Email is lowercased and trimmed, as the Python validator does.
+                // Email is lowercased and trimmed, as the documented contract requires.
                 .andExpect(jsonPath("$.data.email").value("register.me@example.com"))
                 .andExpect(jsonPath("$.data.email_verified").value(false))
                 .andExpect(jsonPath("$.data.role").value("user"))
@@ -150,7 +150,7 @@ class AuthFlowTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("the stored hash is Argon2id with the Python parameters")
+    @DisplayName("the stored hash is Argon2id with the pinned parameters")
     void passwordIsHashedCompatibly() throws Exception {
         register("hashcheck@example.com");
         String hash = jdbc.queryForObject(
@@ -164,7 +164,7 @@ class AuthFlowTest extends PostgresIntegrationTest {
     // --- login ---------------------------------------------------------------
 
     @Test
-    @DisplayName("login returns the token pair in the Python shape")
+    @DisplayName("login returns the token pair in the documented shape")
     void loginSucceeds() throws Exception {
         register("login@example.com");
         JsonNode data = login("login@example.com", PASSWORD);

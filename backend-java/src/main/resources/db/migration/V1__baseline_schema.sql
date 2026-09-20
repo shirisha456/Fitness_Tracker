@@ -1,7 +1,7 @@
 --
 -- V1: baseline schema.
 --
--- This is the schema the Python/FastAPI backend owns at Alembic revision
+-- This is the schema the previous implementation owns at Alembic revision
 -- 008_exercise_scope_indexes, captured with pg_dump from a database built by running
 -- `alembic upgrade head` against an empty PostgreSQL 16 instance. It is not hand-written,
 -- and the eight Alembic migrations are deliberately NOT replayed as Flyway migrations.
@@ -17,7 +17,7 @@
 --
 -- The `alembic_version` table is intentionally absent here: a Flyway-built database has
 -- no Alembic history. On the deployed database that table is left untouched as the
--- record of where Python stopped, and as the rollback anchor.
+-- record of where the reference implementation stopped, and as the rollback anchor.
 --
 -- Schema changes made after the Java cutover belong in V2 onward.
 --

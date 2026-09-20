@@ -20,7 +20,7 @@ All numbers below were measured on one machine; none are extrapolated.
 | Docker | 10 CPUs, 7 GB |
 | Load generator | k6 0.53.0, containerised, 4 CPUs |
 | Backend | `api-java` (Spring Boot 3.5.3, Java 21, virtual threads) |
-| Database | PostgreSQL 16, `max_connections=100`, shared with the Python stack |
+| Database | PostgreSQL 16, `max_connections=100`, shared with the rest of the stack |
 | Dataset | 100 users, 10k workouts, 40k workout-exercises, 30k meals, 6k measurements, 100 profiles |
 | Commit | `3111596` (working tree dirty) |
 | Date | 2026-09-19 |
@@ -70,7 +70,7 @@ for a connection.
 2. Token issuance moved to `TokenIssuanceService`, so the write is genuinely transactional
    even when called from `login` in the same bean.
 3. Pool sized explicitly to 24 (`DB_POOL_SIZE`), chosen against `max_connections=100` shared
-   with the Python `api`, `worker` and `beat` containers — not "as large as possible".
+   with the other services on the host — not "as large as possible".
 4. `connection-timeout` reduced to 3 s, and pool-acquisition failure mapped to **503**.
 
 ## Result
@@ -105,7 +105,7 @@ Reporting only the final table would hide the more instructive part.
 | # | What it showed | Why it was invalid |
 |---|---|---|
 | 1 | 46.6% failures, `max` 1,211,407 ms | Harness: setup-minted tokens outlived the 15-minute TTL, and one request hung with no timeout, stretching a 4m45s profile to 25 minutes |
-| 2 | 21.9% failures | Harness: called `/nutrition/summary` without its required `date`. This *did* expose a real server bug — 8,720 HTTP 500s where Python returns 400 |
+| 2 | 21.9% failures | Harness: called `/nutrition/summary` without its required `date`. This *did* expose a real server bug — 8,720 HTTP 500s where the correct response is 400 |
 | 3 | 1407 → 252 req/s "regression" | Not a regression. Three changes were bundled into one measurement, so nothing was attributable |
 | 4 | Re-running the *original* config gave 86 req/s | The host had degraded across successive 5,000 req/s runs (46,694 TCP connection-refused). The 5,000 req/s regime is not reproducible on this hardware, so no before/after claim can rest on it |
 
@@ -129,8 +129,9 @@ produced the most dramatic-looking numbers.
 
 - **No production capacity claim.** Every figure is from one laptop running the load
   generator, both backends, Postgres, Redis, Prometheus and Grafana simultaneously.
-- **No Java-vs-Python comparison.** The Python backend exposes no metrics endpoint, and both
-  would be competing for the same cores. Any such number would be noise.
+- **No cross-implementation comparison.** These numbers describe this service only. A
+  side-by-side against the implementation it replaced would have had both competing for the
+  same cores, so any such number would have been noise.
 - **No claim that 24 is the right pool size in production.** It is defensible here; the right
   value depends on the real database's `max_connections` and the real core count.
 - The 5,000 req/s stress figures are recorded in `perf/results/` for provenance but are

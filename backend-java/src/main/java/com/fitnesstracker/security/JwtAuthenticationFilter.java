@@ -25,7 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * unauthenticated and lets {@link RestAuthenticationEntryPoint} render the 401, so every
  * unauthenticated response has one shape. The failure reason is stashed on the request so
  * the entry point can distinguish {@code TOKEN_EXPIRED} from {@code UNAUTHORIZED} — a
- * distinction the Python backend makes and the frontend's silent-refresh relies on.
+ * distinction the previous implementation makes and the frontend's silent-refresh relies on.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

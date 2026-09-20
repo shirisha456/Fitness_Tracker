@@ -1,5 +1,5 @@
 {
-  "_comment": "Argon2 hashes produced by the Python backend (app.core.security.hash_password, argon2-cffi PasswordHasher defaults). The Java Argon2PasswordEncoder must verify every one of these. Regenerate only if the Python hashing parameters change.",
+  "_comment": "Reference Argon2id hashes that Argon2PasswordEncoder must verify. They pin the parameters the existing password corpus requires (m=65536, t=3, p=4). See ContractFixtures.",
   "algorithm": "argon2id",
   "version": 19,
   "parameters": {
@@ -22,7 +22,7 @@
       "note": "minimum length accepted by the register validator"
     },
     {
-      "password": "Pä55wörd!Ünïcode",
+      "password": "P\u00e455w\u00f6rd!\u00dcn\u00efcode",
       "hash": "$argon2id$v=19$m=65536,t=3,p=4$GGSVl7x/yaoE/GvrUjoWlA$0kf2j5o5jiVtzVRxXcnJRzeaZlNRhrXEYILnUYAtvyc",
       "note": "non-ASCII characters"
     },

@@ -83,7 +83,7 @@ class EnumMappingSpikeTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("a row written outside Hibernate reads back correctly")
     void readsRowsWrittenByOtherClients() {
-        // Simulates a row the Python backend wrote during the side-by-side period.
+        // Simulates a row the previous implementation wrote during the side-by-side period.
         UUID id = UUID.randomUUID();
         jdbc.update(
                 "INSERT INTO users (id, email, password_hash, role) VALUES (?, ?, ?, 'admin')",

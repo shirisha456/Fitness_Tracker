@@ -36,7 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * ({@code contract/jwt-fixtures.json}, produced by {@code contract/generate_jwt_fixtures.py})
  * and drives them through the real {@code /api/v1/auth/me} endpoint.
  *
- * <p>The other direction — Python accepting Java's tokens — is asserted by
+ * <p>The other direction — the reference implementation accepting Java's tokens — is asserted by
  * {@code contract/verify_java_jwts.py}, which this test writes its input for, and again
  * live in the Docker validation where both backends share one database.
  */
@@ -93,11 +93,11 @@ class JwtCompatibilityTest extends PostgresIntegrationTest {
         return items;
     }
 
-    // --- Python -> Java ------------------------------------------------------
+    // --- reference -> Java ------------------------------------------------------
 
     @ParameterizedTest(name = "Java accepts a PyJWT access token: {0}")
     @MethodSource("acceptedAccessTokens")
-    void javaAcceptsPythonAccessTokens(JsonNode fixture) throws Exception {
+    void acceptsReferenceAccessTokens(JsonNode fixture) throws Exception {
         mockMvc.perform(get("/api/v1/auth/me")
                         .header("Authorization", "Bearer " + fixture.get("token").asText()))
                 .andExpect(status().isOk())
@@ -128,7 +128,7 @@ class JwtCompatibilityTest extends PostgresIntegrationTest {
 
     @Test
     @DisplayName("Java parses a PyJWT refresh token to the same subject and jti")
-    void javaParsesPythonRefreshTokens() throws Exception {
+    void parsesReferenceRefreshTokens() throws Exception {
         JsonNode fixture = load().get("accepted_refresh_tokens").get(0);
 
         var parsed = tokenService.parse(fixture.get("token").asText(), TokenType.REFRESH);
@@ -141,7 +141,7 @@ class JwtCompatibilityTest extends PostgresIntegrationTest {
 
     @Test
     @DisplayName("the production TTLs match: 15 minutes for access, 7 days for refresh")
-    void ttlsMatchPython() throws Exception {
+    void ttlsMatchTheReference() throws Exception {
         JsonNode reference = load().get("ttl_reference");
 
         assertThat(ttlSeconds(reference.get("access").asText()))
@@ -171,11 +171,11 @@ class JwtCompatibilityTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.error.message").value("Not authenticated"));
     }
 
-    // --- Java -> Python ------------------------------------------------------
+    // --- Java -> reference ------------------------------------------------------
 
     @Test
-    @DisplayName("Java-minted tokens are written out for Python to verify")
-    void emitsJavaTokensForPython() throws Exception {
+    @DisplayName("Java-minted tokens are written out for cross-checking")
+    void mintedTokensRoundTrip() throws Exception {
         UUID userId = UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO users (id, email, password_hash, role, email_verified, is_active)
@@ -184,7 +184,7 @@ class JwtCompatibilityTest extends PostgresIntegrationTest {
 
         var user = new com.fitnesstracker.auth.entity.User(
                 "java-minted@example.com", "x", com.fitnesstracker.auth.entity.UserRole.USER);
-        // Sign for the seeded id so Python can resolve the same subject.
+        // Sign for the seeded id so the reference implementation can resolve the same subject.
         var access = tokenService.issueAccessToken(loadUser(userId));
         var refresh = tokenService.issueRefreshToken(userId);
 

@@ -4,7 +4,7 @@
 Accepted.
 
 ## Context
-Two upstreams need to share port 80/443 behind nginx: the real FastAPI backend (always
+Two upstreams need to share port 80/443 behind nginx: the real backend (always
 versioned, `/api/v1/...`) and the Next.js BFF's own route handlers (unversioned —
 `/api/auth/*`, `/api/workouts`, `/api/exercises`, and so on). A naive approach would add one
 nginx `location` block per BFF resource, which means every new frontend feature needs an nginx
@@ -14,7 +14,7 @@ change too.
 Split purely on the `/v1/` path segment:
 
 ```
-location /api/v1/ { proxy_pass http://api_backend; }   # straight to FastAPI
+location /api/v1/ { proxy_pass http://api_backend; }   # straight to the backend
 location /api/     { proxy_pass http://frontend_app; }  # everything else → Next.js BFF
 location /         { proxy_pass http://frontend_app; }  # pages
 ```

@@ -13,7 +13,7 @@ public class StrongPasswordValidator implements ConstraintValidator<StrongPasswo
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         // A null password is reported by @NotNull/@Size, not here, so that a missing field
-        // does not produce two details entries where Python produces one.
+        // does not produce two details entries where the contract produces one.
         return value == null || PATTERN.matcher(value).matches();
     }
 }

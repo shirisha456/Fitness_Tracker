@@ -17,7 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  *
  * <p>PostgreSQL rather than H2 deliberately — this schema uses native enum types, partial
  * indexes and {@code gen_random_uuid()}, none of which H2 reproduces faithfully. It also
- * matches the existing Python suite, which has always tested against real PostgreSQL.
+ * matches how this schema has always been tested: against real PostgreSQL.
  *
  * <p>The container is {@code static}, so one instance is shared by every test class in
  * the JVM rather than started per class.
@@ -61,7 +61,7 @@ public abstract class PostgresIntegrationTest {
         // The point of the exercise: a mapping that disagrees with the schema must fail
         // the build here, not in production.
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
-        // The same secret the Python contract fixtures are generated with, so a token
+        // The same secret the reference contract fixtures are generated with, so a token
         // minted by either backend verifies against the other. 64 chars: HS256 requires
         // at least 32 bytes (RFC 7518 section 3.2), which Nimbus enforces.
         registry.add("app.jwt.secret", () -> TestSecrets.SHARED_JWT_SECRET);

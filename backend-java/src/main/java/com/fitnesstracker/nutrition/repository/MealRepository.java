@@ -26,7 +26,7 @@ public interface MealRepository extends JpaRepository<Meal, UUID> {
     /**
      * Daily macro totals, aggregated in SQL.
      *
-     * <p>COALESCE so an empty day returns zeros rather than nulls — the Python summary does
+     * <p>COALESCE so an empty day returns zeros rather than nulls — the documented summary does
      * the same, and the dashboard renders the number unconditionally.
      */
     @Query("""

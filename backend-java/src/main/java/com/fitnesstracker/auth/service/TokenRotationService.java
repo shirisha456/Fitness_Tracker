@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  * inline would undo the revocation — the system would detect the attack, report it, and
  * do nothing. {@link TokenRevocationService} commits separately via {@code REQUIRES_NEW},
  * and it is a separate bean because Spring's proxy-based {@code @Transactional} is a no-op
- * on self-invocation. This exact bug was found and fixed once already in the Python
+ * on self-invocation. This exact bug was found and fixed once already in the reference
  * implementation (commit 6c32800); {@code RefreshTokenReuseTransactionSpikeTest} guards it.
  */
 @Service

@@ -4,13 +4,13 @@
 Accepted.
 
 ## Context
-The frontend is a Next.js App Router app; the backend is a separate FastAPI service. Something
+The frontend is a Next.js App Router app; the backend is a separate Spring Boot service. Something
 has to hold the JWT access/refresh pair between requests, and that something is directly exposed
 to XSS risk if it's client-accessible JavaScript state or `localStorage`.
 
 ## Decision
 Next.js Route Handlers under `frontend/app/api/**` act as a backend-for-frontend: they're the
-*only* code that ever calls FastAPI directly (via `BACKEND_INTERNAL_URL`, the Docker-internal
+*only* code that ever calls the backend directly (via `BACKEND_INTERNAL_URL`, the Docker-internal
 `http://api:8000/api`, never exposed to the browser). The JWTs live in **httpOnly**,
 `SameSite=Lax` cookies set by these route handlers — client-side JavaScript can never read them.
 
@@ -26,7 +26,7 @@ for correctness beats a subtly broken refresh chain.
 - The access/refresh tokens are never present in browser-accessible storage or JS state at all —
   an XSS bug can't directly exfiltrate a session token.
 - Every domain feature (workouts, meals, etc.) needs its own thin proxy route
-  (`frontend/app/api/workouts/route.ts` and so on) rather than the browser calling FastAPI
+  (`frontend/app/api/workouts/route.ts` and so on) rather than the browser calling the backend
   directly — more files, but a single consistent auth/refresh boundary.
 - nginx's routing split (see [ADR 005](005-nginx-path-routing-split.md)) exists specifically to
   make this pattern require zero new nginx config per new BFF route.

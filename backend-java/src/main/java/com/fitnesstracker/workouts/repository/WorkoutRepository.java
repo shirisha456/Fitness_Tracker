@@ -29,7 +29,7 @@ public interface WorkoutRepository extends JpaRepository<Workout, UUID> {
     /**
      * List view: summaries only, aggregated in SQL.
      *
-     * <p>The Python endpoint returns {@code exercise_count}, not the children, so counting
+     * <p>The contract returns {@code exercise_count}, not the children, so counting
      * in the database avoids loading collections purely to call {@code size()} on them.
      * Uses {@code ix_workouts_user_performed (user_id, performed_at)}.
      *

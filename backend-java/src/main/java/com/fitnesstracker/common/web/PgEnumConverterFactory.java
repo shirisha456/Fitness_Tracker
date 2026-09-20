@@ -29,7 +29,7 @@ public class PgEnumConverterFactory implements ConverterFactory<String, PgEnum> 
                 }
             }
             // Surfaces as a 400 via MethodArgumentTypeMismatchException, matching the
-            // Python backend's handling of an unknown enum value.
+            // previous implementation's handling of an unknown enum value.
             throw new IllegalArgumentException(
                     "Unknown value '" + source + "' for " + targetType.getSimpleName());
         };

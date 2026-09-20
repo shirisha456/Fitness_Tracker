@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
-/** Update adds {@code status}, defaulting to active when omitted — as the Python schema does. */
+/** Update adds {@code status}, defaulting to active when omitted — as the documented schema does. */
 public record GoalUpdateRequest(
         @NotBlank @Size(min = 1, max = 255) String title,
         @Positive @DecimalMax("500") Double targetWeightKg,

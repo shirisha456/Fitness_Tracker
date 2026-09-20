@@ -1,5 +1,12 @@
 # Phase 14 — Docker & nginx
 
+> **Historical document.** This records work done when the backend was implemented in
+> Python/FastAPI, or the rewrite from it. That implementation is no longer part of the
+> architecture and is not deployed; it remains in git history only (tag
+> `pre-java-only-cleanup`, branch `legacy-python-backend`). Kept for context, not as a
+> description of how the system works today — see [architecture.md](architecture.md).
+
+
 Full local containerization: both Dockerfiles, the entrypoint script, `docker-compose.yml`, and
 `nginx/nginx.conf`. The first infrastructure phase after 13 phases of application code.
 

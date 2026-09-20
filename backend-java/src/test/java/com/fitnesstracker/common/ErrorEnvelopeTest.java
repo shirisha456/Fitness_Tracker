@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
  * The error envelope is shared by every endpoint, so it is tested once, here, against
  * endpoints that exist only for this purpose.
  *
- * <p>The shapes asserted were captured from a running Python instance; see
+ * <p>The shapes asserted were captured from a running reference instance; see
  * docs/api-compatibility.md.
  */
 @Import({ErrorEnvelopeTest.ProbeController.class, ErrorEnvelopeTest.ProbeSecurity.class})
@@ -153,7 +153,7 @@ class ErrorEnvelopeTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/v1/__probe/uuid/not-a-uuid"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"))
-                // "path.id", not "id": FastAPI prefixes the parameter's location, and the
+                // "path.id", not "id": the previous implementation prefixes the parameter's location, and the
                 // field name is part of the contract clients read.
                 .andExpect(jsonPath("$.error.details[0].field").value("path.id"));
     }

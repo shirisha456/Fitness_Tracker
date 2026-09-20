@@ -38,7 +38,7 @@ public class ProfileService {
      * Upsert with full-replace semantics: an omitted field is written as NULL.
      *
      * <p>The {@code UNIQUE(user_id)} constraint is what guarantees one row; this reads
-     * first rather than relying on the constraint to raise, mirroring the Python service.
+     * first rather than relying on the constraint to raise, mirroring the previous implementation.
      */
     @Transactional
     public ProfileResponse upsert(User user, ProfileRequest request) {

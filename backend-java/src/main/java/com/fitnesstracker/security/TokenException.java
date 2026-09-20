@@ -5,7 +5,7 @@ import com.fitnesstracker.common.api.ErrorCode;
 /**
  * A JWT that could not be trusted.
  *
- * <p>Carries the error code the Python backend would have returned: {@code TOKEN_EXPIRED}
+ * <p>Carries the error code the previous implementation would have returned: {@code TOKEN_EXPIRED}
  * for an expired token and {@code UNAUTHORIZED} for everything else (bad signature,
  * malformed, wrong {@code type}). Both map to HTTP 401.
  */

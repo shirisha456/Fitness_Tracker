@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Registration, login, verification and password reset.
  *
  * <p>A direct port of {@code app/modules/auth/service.py}. Where a behaviour looks odd it
- * is almost certainly deliberate in the original and is preserved with a note; the Python
+ * is almost certainly deliberate in the original and is preserved with a note; the reference
  * implementation is the specification until parity is proven.
  *
  * <p>Refresh rotation lives in {@link TokenRotationService} because its transaction
@@ -72,7 +72,7 @@ public class AuthService {
     /**
      * A precomputed hash so a login for an unknown email still performs a full Argon2
      * verification. Without it the response time reveals whether an account exists.
-     * The Python service does the same thing with {@code _DUMMY_PASSWORD_HASH}.
+     * The previous implementation does the same thing with {@code _DUMMY_PASSWORD_HASH}.
      */
     private final String dummyHash;
 

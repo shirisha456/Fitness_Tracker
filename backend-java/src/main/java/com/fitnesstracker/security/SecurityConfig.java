@@ -40,7 +40,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
 
-    /** Auth endpoints that must work without a token, matching the Python router. */
+    /** Auth endpoints that must work without a token, matching the documented route layout. */
     private static final String[] PUBLIC_AUTH_POST = {
         "/api/v1/auth/register",
         "/api/v1/auth/login",
@@ -101,7 +101,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Mirrors the Python CORS middleware, reading the same comma-separated
+     * Mirrors the documented CORS behaviour, reading the same comma-separated
      * {@code CORS_ORIGINS} variable.
      */
     // @Primary: Spring Security contributes its own CorsConfigurationSource, and the

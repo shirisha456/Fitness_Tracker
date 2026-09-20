@@ -190,7 +190,7 @@ public class TrainingInsightsService {
                     recent.exercises().get(entry.getKey()), entry.getValue()));
         }
 
-        // Sorted by (most recent session, name) descending — matching the Python service,
+        // Sorted by (most recent session, name) descending — matching the previous implementation,
         // where the reverse sort applies to the name too.
         insights.sort(Comparator
                 .comparing((ExerciseInsight insight) -> byExercise.get(insight.exercise().id())

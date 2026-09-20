@@ -6,7 +6,7 @@ import java.time.LocalDate;
 /**
  * Serialises with the keys {@code from} and {@code to}.
  *
- * <p>Those are Pydantic serialisation aliases in the Python schema and the frontend reads
+ * <p>Those are Pydantic serialisation aliases in the documented schema and the frontend reads
  * them directly, so the names are pinned rather than derived from the field names.
  */
 public record DateRange(

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
-/** Every field optional; height bounded {@code > 0} to 300, as in the Python schema. */
+/** Every field optional; height bounded {@code > 0} to 300, as in the documented schema. */
 public record ProfileRequest(
         @Size(max = 100) String displayName,
         LocalDate dateOfBirth,

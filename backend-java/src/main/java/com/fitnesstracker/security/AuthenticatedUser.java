@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 /**
  * The authenticated principal: the {@link User} row itself.
  *
- * <p>The Python backend resolves the full user on every request
+ * <p>The previous implementation resolves the full user on every request
  * ({@code get_current_user_from_token}) and re-checks {@code is_active} and
  * {@code deleted_at}, so a deactivated account stops working immediately rather than at
  * the next token expiry. That behaviour is preserved, which is why the principal carries

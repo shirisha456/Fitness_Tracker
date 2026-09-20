@@ -1,97 +1,28 @@
 # backend-java
 
-The Spring Boot replacement for `backend/` (FastAPI). Both run side by side until parity
-is proven — see [docs/java-migration-plan.md](../docs/java-migration-plan.md).
-
-**The Python backend is the specification.** It stays in the repository, and stays the
-one serving traffic, until every success criterion in the plan is met.
-
-## Status
-
-| Phase | State |
-|---|---|
-| 0.5 Risk spikes (enums, refresh-token transactions, Argon2) | done |
-| 1 Foundation | done — 45 Maven tests, 26 Docker checks |
-| 2 Authentication | done — 25 Docker checks, 21 BFF checks |
-| 3 Workouts | done — 11/11 response parity, 13/13 frontend |
-| 4–6 Nutrition, progress, profile | done — 21/21 frontend |
-| 7 Adaptive training insights | done — 92 shared fixtures, 18/18 frontend |
-| 8 AI coach | done — 262 Maven tests, 8/8 response parity, 11/11 frontend |
-| 9 Background processing | done — Redis Streams, 8 dispatch tests |
-| 10 Frontend parity | done — 85/85 flows against Java |
-| 11 Cutover prep | done — cutover and rollback both verified |
-| 12 Observability | done — Prometheus + Grafana, 10-panel dashboard |
-| 13 Performance testing | done — k6, seeded dataset, reproducible baseline |
-| 14 Bottleneck fix | done — read p95 −40% under login contention |
-| 15 Cutover | **done — this is now the active backend** |
-
-**245 Maven tests passing**; 47/47 identical responses against the Python backend.
-
-Auth is at parity and interoperates with the Python backend live: a token minted by
-either is accepted by the other, and both share one `refresh_tokens` table. nginx still
-routes all `/api/v1/` traffic to the Python backend.
+The application backend: **Java 21 / Spring Boot 3.5**. nginx routes `/api/v1/*` here and
+the Next.js BFF calls it directly over the Docker network.
 
 ## Running it
 
-### Tests
-
 ```bash
+# Full test suite. Needs Docker — integration tests use Testcontainers against real
+# PostgreSQL and Redis.
 ./mvnw verify
+
+# Locally, against the Compose database and Redis
+docker compose up -d db redis
+./mvnw spring-boot:run
+
+# In the full stack
+docker compose up -d                 # from the repository root
+docker compose logs -f api-java
+curl localhost/api/v1/health         # through nginx
+curl localhost:8001/api/v1/health    # direct
 ```
 
-Requires Docker: the integration tests use Testcontainers with real PostgreSQL 16 and
-Redis 7, not H2. The schema uses native enum types, partial indexes and
-`gen_random_uuid()`, none of which H2 reproduces faithfully — and the Python suite has
-always tested against real PostgreSQL too.
-
-### Two environment gotchas
-
-Both cost time once already; neither affects production.
-
-1. **Docker API version.** docker-java (inside Testcontainers) negotiates Docker API
-   v1.32, and Docker Engine 25+ sets `MinAPIVersion` to 1.40 — so `/info` answers HTTP 400
-   and Testcontainers reports the unhelpful *"Could not find a valid Docker environment"*.
-   The build pins `api.version` via the `docker.api.version` property in `pom.xml`, so
-   `./mvnw verify` works without any local setup.
-
-2. **Docker Desktop on macOS** listens on `~/.docker/run/docker.sock`, not
-   `/var/run/docker.sock`. Testcontainers needs to be told:
-
-   ```properties
-   # ~/.testcontainers.properties
-   docker.host=unix:///Users/<you>/.docker/run/docker.sock
-   ```
-
-### In Docker, alongside the Python backend
-
-```bash
-# from the repository root
-docker compose up --build -d api-java
-
-# the Java service, for parity testing only (nginx does not route here)
-curl http://localhost:8001/api/v1/health
-curl http://localhost:8001/api/v1/ready
-curl http://localhost:8001/actuator/health
-curl http://localhost:8001/actuator/prometheus
-
-# the Python backend, still serving real traffic through nginx
-curl http://localhost/api/v1/health
-```
-
-Both backends share one PostgreSQL, one Redis and one `SECRET_KEY`. That is deliberate:
-a JWT minted by either validates against the other, so the eventual cutover is a one-line
-nginx change rather than a forced logout for every user. `api-java` publishes host port
-**8001**; `api` keeps the conventional one, so there is no ambiguity about which service
-is real.
-
-Rebuilding just this image:
-
-```bash
-docker build -t fitness-tracker-api-java:dev ./backend-java
-```
-
-The build skips tests on purpose — Testcontainers needs a Docker daemon, which a build
-container does not have. `./mvnw verify` runs on the host before the image is built.
+`/actuator/**` lives on management port **9000**, which is not published to the host.
+Prometheus scrapes it over the Compose network; nothing outside that network can reach it.
 
 ## Layout
 
@@ -113,7 +44,7 @@ src/main/java/com/fitnesstracker/
 ## Things that will bite you if you change them
 
 **`spring.jpa.hibernate.ddl-auto=validate`.** The schema belongs to Flyway (and
-historically to Alembic). Never `update` or `create`, in any profile.
+historically to an earlier migration tool). Never `update` or `create`, in any profile.
 
 **Native enum columns need `PgEnumUserType` + `columnDefinition`.** The obvious mapping,
 `@JdbcTypeCode(SqlTypes.NAMED_ENUM)`, *passes schema validation and then fails on every
@@ -155,10 +86,10 @@ silently downgrade every password changed after cutover.
 makes refresh-token reuse detection report the attack and then roll back the revocation.
 `RefreshTokenReuseTransactionSpikeTest` fails if anyone tries.
 
-**Numbers must round like CPython.** `PythonNumbers.round` uses `new BigDecimal(double)`
-with `HALF_EVEN`; `Math.round` and `BigDecimal.valueOf` both disagree with Python on ties
+**Numbers must round like CPython.** `AnalyticsNumbers.round` uses `new BigDecimal(double)`
+with `HALF_EVEN`; `Math.round` and `BigDecimal.valueOf` both disagree with CPython on ties
 and would corrupt every percentage the analytics engine emits. Verified by
-`contract/training-insights-fixtures.json`, which is generated from the Python engine and
+`src/test/resources/contract/training-insights-fixtures.json`, which pins the behaviour and
 consumed by both test suites.
 
 **Field names with digit runs need `@JsonProperty`.** Jackson renders
@@ -194,7 +125,7 @@ saying so.
 
 - **The AI layer needs a provider key to do anything.** With `app.ai.api-key` unset,
   `/api/v1/ai/**` returns 503 and `?explain=true` falls back to deterministic prose with
-  `explanation_source: "deterministic"`. That matches Python. No test ever calls the real
+  `explanation_source: "deterministic"`. No test ever calls the real
   provider — tests bind `FakeAiProvider`, and end-to-end validation used a local stub.
 - **Actuator is on management port 9000, which is not published.** Prometheus scrapes it
   over the Compose network; nothing on the host can reach it. Formerly this was exposed on
@@ -203,5 +134,5 @@ saying so.
   traffic it needs either a separate management port or authentication.
 - **The image build is slow from cold** (several minutes) because the Maven repository
   starts empty. The BuildKit cache mount makes rebuilds fast.
-- **CI does not build or test this module yet.** Adding the Java job is Phase 1 follow-up
-  work; the existing Python and frontend jobs are untouched.
+- **No load-shedding at the edge.** Overload is absorbed by the connection pool and the AI
+  semaphore rather than being rejected at the front door.

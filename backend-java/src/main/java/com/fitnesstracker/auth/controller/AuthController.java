@@ -115,7 +115,7 @@ public class AuthController {
 
     /**
      * The direct peer address, matching {@code request.client.host} in Starlette. nginx
-     * forwards {@code X-Forwarded-For}, but the Python service does not read it, so
+     * forwards {@code X-Forwarded-For}, but the previous implementation does not read it, so
      * neither does this — the stored value stays consistent across both backends.
      */
     private static String clientIp(HttpServletRequest request) {

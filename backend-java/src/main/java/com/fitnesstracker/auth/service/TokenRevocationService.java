@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * transaction, the exception that reports the reuse would roll the revocation back — the
  * system would detect the attack, report it, and do nothing about it.
  *
- * <p>The Python implementation solves the same problem by committing explicitly before
+ * <p>The reference implementation solved the same problem by committing explicitly before
  * raising; this is the Spring equivalent. It is a separate bean because Spring's
  * proxy-based {@code @Transactional} is a no-op on a self-invocation.
  */

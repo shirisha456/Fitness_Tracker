@@ -117,7 +117,7 @@ class WorkoutApiTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("get-or-create is case-insensitive and still returns 201")
     void getOrCreateIsCaseInsensitive() throws Exception {
-        // The quirk is deliberate: the Python endpoint returns 201 even when it returned an
+        // The quirk is deliberate: the endpoint returns 201 even when it returned an
         // existing row, and the exercise picker relies on it.
         mockMvc.perform(post("/api/v1/exercises")
                         .header("Authorization", alice.authorization())
@@ -163,7 +163,7 @@ class WorkoutApiTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.data.exercises[0].order_index").value(0))
                 .andExpect(jsonPath("$.data.exercises[0].sets").value(3))
                 .andExpect(jsonPath("$.data.exercises[0].reps").value(8))
-                // An integer weight comes back as a float, as Python returns it.
+                // An integer weight comes back as a float, as the reference implementation returns it.
                 .andExpect(jsonPath("$.data.exercises[0].weight_kg").value(45.0))
                 .andExpect(jsonPath("$.data.exercises[0].notes").doesNotExist())
                 .andExpect(jsonPath("$.data.exercises[0].exercise.name").value("Bench Press"))
@@ -284,7 +284,7 @@ class WorkoutApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("validation bounds match the Python schema")
+    @DisplayName("validation bounds match the documented schema")
     void validationBounds() throws Exception {
         mockMvc.perform(post("/api/v1/workouts")
                         .header("Authorization", alice.authorization())

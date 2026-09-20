@@ -49,7 +49,7 @@ public class Workout {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    /** Maintained by SQLAlchemy in Python, so Hibernate maintains it here. */
+    /** Maintained by the previous ORM in the reference implementation, so Hibernate maintains it here. */
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;

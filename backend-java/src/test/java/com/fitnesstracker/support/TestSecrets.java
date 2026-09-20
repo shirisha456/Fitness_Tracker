@@ -1,7 +1,7 @@
 package com.fitnesstracker.support;
 
 /**
- * The shared secret used by every test and by the Python contract-fixture generator.
+ * The shared secret used by every test and by the reference contract-fixture generator.
  *
  * <p>Cross-backend token compatibility only means anything if both sides sign with the
  * same key, so it lives in one place. 64 characters because HS256 requires a key at least

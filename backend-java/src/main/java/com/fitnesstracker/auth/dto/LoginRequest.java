@@ -9,7 +9,7 @@ public record LoginRequest(
 
 
     /**
-     * Trims and lowercases before validation runs, matching the Python validator — which
+     * Trims and lowercases before validation runs, matching the documented contract — which
      * accepts {@code " Alex@Example.COM "} and stores {@code alex@example.com}. Doing it
      * in the compact constructor means {@code @Email} sees the normalised value, so the
      * two backends agree on what is acceptable, not just on what is stored.

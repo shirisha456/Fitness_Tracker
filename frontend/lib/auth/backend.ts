@@ -23,7 +23,7 @@ export class BackendError extends Error {
   }
 }
 
-/** Server-only: calls FastAPI directly (Docker network / configured origin), never through the browser. */
+/** Server-only: calls the backend directly (Docker network / configured origin), never through the browser. */
 export async function backendFetch(path: string, init?: RequestInit): Promise<Response> {
   const base = BACKEND_INTERNAL_URL.replace(/\/$/, "");
   const url = `${base}${path.startsWith("/") ? path : `/${path}`}`;

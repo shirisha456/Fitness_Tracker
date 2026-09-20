@@ -34,8 +34,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
  * <p>Two behaviours are deliberate and differ from Spring's defaults:
  *
  * <ul>
- *   <li><b>Validation failures return 400, not 422.</b> FastAPI's default is 422 and the
- *       Python backend overrides it to 400; the frontend was written against 400.
+ *   <li><b>Validation failures return 400, not 422.</b> the previous implementation's default is 422 and the
+ *       previous implementation overrides it to 400; the frontend was written against 400.
  *   <li><b>Unhandled exceptions never leak.</b> The stack trace is logged with the
  *       correlation id; the client receives a fixed message and that id, so an incident
  *       can still be traced without exposing internals.
@@ -125,7 +125,7 @@ public class GlobalExceptionHandler {
         }
         for (var error : ex.getBindingResult().getGlobalErrors()) {
             // Cross-field rules (password_confirm matching, for instance) have no single
-            // field; Python reports these with an empty field name.
+            // field; the contract reports these with an empty field name.
             details.add(new ErrorDetail("", error.getDefaultMessage(), "INVALID_FORMAT"));
         }
         return validationFailure(details, request);
@@ -183,9 +183,9 @@ public class GlobalExceptionHandler {
      * A required query parameter was not sent at all.
      *
      * <p>Without this, Spring lets {@code MissingServletRequestParameterException} reach the
-     * catch-all and the client gets a 500 for what is plainly a bad request. FastAPI answers
+     * catch-all and the client gets a 500 for what is plainly a bad request. the previous implementation answers
      * 400 with {@code query.<name>} / "Field required", so that shape is reproduced exactly —
-     * including the {@code query.} prefix, which is FastAPI's location marker and is how the
+     * including the {@code query.} prefix, which is the previous implementation's location marker and is how the
      * existing clients read it.
      *
      * <p>Found by the Phase 13 load test: {@code GET /nutrition/summary} with no {@code date}
@@ -205,7 +205,7 @@ public class GlobalExceptionHandler {
      * A parameter was present but could not be converted — {@code ?date=not-a-date},
      * {@code /workouts/not-a-uuid}.
      *
-     * <p>The field name mirrors FastAPI's: a location prefix ({@code query.} or
+     * <p>The field name mirrors the previous implementation's: a location prefix ({@code query.} or
      * {@code path.}) plus the parameter name in snake_case, because that is the name the
      * client sent. Java's parameter is {@code workoutId}; the client wrote
      * {@code workout_id}, and telling it about a name it never used is unhelpful.
@@ -226,7 +226,7 @@ public class GlobalExceptionHandler {
                 request);
     }
 
-    /** "query." or "path.", matching FastAPI's error location marker. */
+    /** "query." or "path.", matching the previous implementation's error location marker. */
     private static String parameterLocation(MethodArgumentTypeMismatchException ex) {
         MethodParameter parameter = ex.getParameter();
         return parameter != null && parameter.hasParameterAnnotation(PathVariable.class)

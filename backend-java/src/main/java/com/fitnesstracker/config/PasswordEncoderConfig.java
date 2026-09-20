@@ -6,7 +6,7 @@ import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Argon2 configured to match the Python backend's existing hash corpus.
+ * Argon2 configured to match the previous implementation's existing hash corpus.
  *
  * <p>Every password hash already in the database was produced by argon2-cffi's
  * {@code PasswordHasher()} defaults: argon2id, v=19, m=65536 KiB, t=3, p=4, 32-byte hash,
@@ -18,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * are weaker than the existing corpus. Using them would silently downgrade the cost of
  * every password changed after the cutover, and would leave the database holding two
  * different strengths with nothing recording why. The parameters are therefore pinned
- * explicitly, and {@code contract/argon2-fixtures.json} holds real Python-produced hashes
+ * explicitly, and {@code contract/argon2-fixtures.json} holds real reference-produced hashes
  * that the test suite verifies against.
  */
 @Configuration

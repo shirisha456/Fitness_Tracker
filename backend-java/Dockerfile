@@ -51,7 +51,7 @@ EXPOSE 8000
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
 
 # Liveness uses /api/v1/health — the application's own compatibility contract, shared
-# with the Python backend — not Actuator. start-period covers JVM boot plus Flyway.
+# the documented contract endpoint, not Actuator. start-period covers JVM boot plus Flyway.
 HEALTHCHECK --interval=10s --timeout=5s --retries=5 --start-period=90s \
     CMD curl -fsS http://localhost:8000/api/v1/health || exit 1
 

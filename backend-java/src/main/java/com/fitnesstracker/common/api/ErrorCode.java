@@ -3,7 +3,7 @@ package com.fitnesstracker.common.api;
 /**
  * The closed set of {@code error.code} values the API emits.
  *
- * <p>Mirrors the Python backend exactly (see docs/api.md). Constants rather than an enum
+ * <p>Mirrors the previous implementation exactly (see docs/api.md). Constants rather than an enum
  * because they are written into JSON as-is and compared as strings by clients.
  */
 public final class ErrorCode {

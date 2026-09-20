@@ -35,7 +35,7 @@ public class ExerciseService {
     /**
      * Get-or-create, case-insensitive on name.
      *
-     * <p>Returns <b>201</b> even when the row already existed — a quirk of the Python
+     * <p>Returns <b>201</b> even when the row already existed — a quirk of the reference
      * endpoint that the exercise picker depends on, so it is preserved.
      */
     @Transactional
@@ -51,7 +51,7 @@ public class ExerciseService {
      *
      * <p>Losing a race on the unique name must undo only this INSERT. A
      * {@code DataIntegrityViolationException} marks the surrounding transaction
-     * rollback-only, so recovering inside it is impossible — the Python implementation uses
+     * rollback-only, so recovering inside it is impossible — the previous implementation uses
      * a SAVEPOINT for the same reason.
      */
     @Service

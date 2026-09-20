@@ -1,5 +1,5 @@
 {
-  "_comment": "Authoritative training-insight fixtures, generated from the Python engine by contract/generate_training_fixtures.py. Consumed by both pytest and JUnit. Python's output is the source of truth \u2014 especially for rounding boundaries and evidence-string formatting.",
+  "_comment": "Authoritative training-insight fixtures. They pin exact-value half-to-even rounding, the six classifications and evidence-string formatting. See ContractFixtures.",
   "base_date": "2026-06-01",
   "classifications": [
     "progressing",

@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 /**
- * Bounds copied from the Python schema.
+ * Bounds copied from the documented schema.
  *
  * <p>Note the asymmetry, which is deliberate rather than a mistake to tidy up: weight and
  * circumferences are {@code > 0}, while body-fat percentage is {@code >= 0}. Loosening or

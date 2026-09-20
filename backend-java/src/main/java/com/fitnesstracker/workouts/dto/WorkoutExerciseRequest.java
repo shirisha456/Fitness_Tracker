@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 /**
- * Bounds copied from the Python schema: sets 1–50, reps 1–1000, weight ≥ 0 or absent.
+ * Bounds copied from the documented schema: sets 1–50, reps 1–1000, weight ≥ 0 or absent.
  *
  * <p>{@code orderIndex} is deliberately absent — it is assigned from array position, so a
  * client cannot set it.

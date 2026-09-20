@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * The Flyway baseline must reproduce the schema the Python backend owns.
+ * The Flyway baseline must reproduce the schema the previous implementation owns.
  *
  * <p>{@code contract/expected-schema.txt} was captured by introspecting a database built
  * with {@code alembic upgrade head}. This test introspects the Flyway-built container the
@@ -29,7 +29,7 @@ class SchemaParityTest extends PostgresIntegrationTest {
 
     private static final String EXPECTED = "expected-schema.txt";
 
-    /** Re-implements the Python introspection script's output format, verbatim. */
+    /** Reproduces the reference introspection output format, verbatim. */
     private String introspect() {
         StringBuilder out = new StringBuilder();
         List<String> tables = jdbc.queryForList(

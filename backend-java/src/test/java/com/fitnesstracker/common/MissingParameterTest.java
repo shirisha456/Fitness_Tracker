@@ -20,7 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * <p>These exist because the Phase 13 load test recorded 8,720 HTTP 500s on
  * {@code GET /nutrition/summary}. Spring raises {@code
  * MissingServletRequestParameterException}, nothing handled it, and it fell through to the
- * catch-all. FastAPI answers 400 with {@code query.<name>} / "Field required".
+ * catch-all. the previous implementation answers 400 with {@code query.<name>} / "Field required".
  *
  * <p>The response-parity suite never caught this, because every request it compares is
  * well-formed. Absent input is a case worth testing in its own right — it is the cheapest
@@ -72,7 +72,7 @@ class MissingParameterTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("a path variable of the wrong type reports path.<snake_case_name>")
     void wrongTypePathVariableIsLocated() throws Exception {
-        // Spring's parameter is `workoutId`; the client wrote `workout_id`. FastAPI reports
+        // Spring's parameter is `workoutId`; the client wrote `workout_id`. the previous implementation reports
         // the latter, so this does too.
         mockMvc.perform(get("/api/v1/workouts/not-a-uuid")
                         .header("Authorization", alice.authorization()))

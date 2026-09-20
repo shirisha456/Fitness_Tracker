@@ -32,8 +32,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * Cross-language parity for the deterministic analytics engine.
  *
- * <p>Consumes {@code contract/training-insights-fixtures.json} — the same file the pytest
- * suite reads — generated from the Python implementation. <b>Python's output is the source
+ * <p>Consumes {@code contract/training-insights-fixtures.json} — the same file the the previous test suite
+ * suite reads — generated from the previous implementation. <b>the fixture output is the source
  * of truth.</b> This does not assume the Java rounding helper is universally equivalent to
  * CPython's {@code round()}; it asserts the full computed result field by field, so any
  * divergence in rounding, formatting or ordering fails here with the exact difference.
@@ -120,9 +120,9 @@ class TrainingAnalyticsFixtureTest {
 
     // --- the parity assertions -----------------------------------------------
 
-    @ParameterizedTest(name = "insight matches Python: {0}")
+    @ParameterizedTest(name = "insight matches the reference fixture: {0}")
     @MethodSource("cases")
-    void insightMatchesPython(String name, JsonNode testCase) {
+    void insightMatchesFixture(String name, JsonNode testCase) {
         ExerciseInsight insight = TrainingAnalytics.buildExerciseInsight(
                 exerciseRef(testCase), loggedSets(testCase));
 
@@ -176,9 +176,9 @@ class TrainingAnalyticsFixtureTest {
         assertThat((Object) actual).as("%s: full insight payload", name).isEqualTo(expected);
     }
 
-    @ParameterizedTest(name = "sessions and personal bests match Python: {0}")
+    @ParameterizedTest(name = "sessions and personal bests match the reference fixture: {0}")
     @MethodSource("cases")
-    void sessionsAndBestsMatchPython(String name, JsonNode testCase) {
+    void sessionsAndBestsMatchFixture(String name, JsonNode testCase) {
         List<SessionMetrics> sessions = TrainingAnalytics.buildSessions(loggedSets(testCase));
 
         assertThat((Object) MAPPER.valueToTree(sessions))
@@ -208,9 +208,9 @@ class TrainingAnalyticsFixtureTest {
 
     // --- scalar parity -------------------------------------------------------
 
-    @ParameterizedTest(name = "percent_change matches Python")
+    @ParameterizedTest(name = "percent_change matches the reference fixture")
     @MethodSource("percentChangeCases")
-    void percentChangeMatchesPython(JsonNode scalar) {
+    void percentChangeMatchesFixture(JsonNode scalar) {
         Double actual = TrainingAnalytics.percentChange(
                 nullableDouble(scalar.get("baseline")), nullableDouble(scalar.get("latest")));
         assertThat((Object) actual)
@@ -218,18 +218,18 @@ class TrainingAnalyticsFixtureTest {
                 .isEqualTo(nullableDouble(scalar.get("expected")));
     }
 
-    @ParameterizedTest(name = "suggest_next_load_kg matches Python")
+    @ParameterizedTest(name = "suggest_next_load_kg matches the reference fixture")
     @MethodSource("suggestedLoadCases")
-    void suggestedLoadMatchesPython(JsonNode scalar) {
+    void suggestedLoadMatchesFixture(JsonNode scalar) {
         Double actual = TrainingAnalytics.suggestNextLoadKg(scalar.get("current").asDouble());
         assertThat((Object) actual)
                 .as("suggest_next_load_kg(%s)", scalar.get("current"))
                 .isEqualTo(nullableDouble(scalar.get("expected")));
     }
 
-    @ParameterizedTest(name = "consistency matches Python")
+    @ParameterizedTest(name = "consistency matches the reference fixture")
     @MethodSource("consistencyCases")
-    void consistencyMatchesPython(JsonNode scalar) {
+    void consistencyMatchesFixture(JsonNode scalar) {
         List<LocalDate> dates = new ArrayList<>();
         scalar.get("workout_dates").forEach(node -> dates.add(LocalDate.parse(node.asText())));
 
@@ -239,9 +239,9 @@ class TrainingAnalyticsFixtureTest {
         assertThat((Object) MAPPER.valueToTree(metrics)).isEqualTo(scalar.get("expected"));
     }
 
-    @ParameterizedTest(name = "volume_trend matches Python")
+    @ParameterizedTest(name = "volume_trend matches the reference fixture")
     @MethodSource("volumeTrendCases")
-    void volumeTrendMatchesPython(JsonNode scalar) {
+    void volumeTrendMatchesFixture(JsonNode scalar) {
         List<LoggedSet> entries = new ArrayList<>();
         scalar.get("entries").forEach(node -> entries.add(new LoggedSet(
                 UUID.randomUUID(),

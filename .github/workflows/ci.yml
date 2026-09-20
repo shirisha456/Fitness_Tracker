@@ -11,58 +11,37 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: backend-java
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: fitforge
-          POSTGRES_PASSWORD: fitforge
-          POSTGRES_DB: fitforge
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U fitforge -d fitforge"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
+    # No `services:` block. The integration tests use Testcontainers, which starts its
+    # own PostgreSQL and Redis against the runner's Docker daemon — that is the whole
+    # point of Testcontainers, and a second set of service containers would only be
+    # confusing. GitHub's ubuntu-latest runners have Docker available by default.
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
         with:
-          python-version: "3.12"
+          java-version: "21"
+          distribution: temurin
+          cache: maven
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Ruff check
-        run: ruff check .
-
-      - name: Run tests
-        run: pytest -v
+      - name: Verify
+        run: ./mvnw -B verify
         env:
-          DATABASE_URL: postgresql+asyncpg://fitforge:fitforge@localhost:5432/fitforge
-          REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY: test-secret-key-for-ci-only
-          ENVIRONMENT: test
-          EMAIL_BACKEND: console
-          CELERY_TASK_ALWAYS_EAGER: "true"
-          FRONTEND_URL: http://localhost:3000
+          # docker-java (inside Testcontainers) negotiates Docker API v1.32, which Docker
+          # Engine 25+ rejects (MinAPIVersion 1.40). The pom pins this via the
+          # docker.api.version property; the env var is belt and braces for runners whose
+          # engine predates it.
+          TESTCONTAINERS_RYUK_DISABLED: "false"
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-surefire-reports
+          path: backend-java/target/surefire-reports/
 
   frontend:
     runs-on: ubuntu-latest

@@ -14,7 +14,7 @@ public interface EmailVerificationTokenRepository
 
     Optional<EmailVerificationToken> findByTokenHash(String tokenHash);
 
-    /** Issuing a new link invalidates any outstanding one, as the Python service does. */
+    /** Issuing a new link invalidates any outstanding one, as the previous implementation does. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             UPDATE EmailVerificationToken t

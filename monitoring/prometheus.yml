@@ -20,7 +20,3 @@ scrape_configs:
   - job_name: prometheus
     static_configs:
       - targets: ["localhost:9090"]
-
-# The Python backend exposes no metrics endpoint, so there is nothing to scrape from it.
-# That asymmetry is worth stating plainly: side-by-side latency comparisons between the two
-# backends have to come from the load generator's own measurements, not from here.

@@ -1,4 +1,4 @@
-import { Dumbbell, Flame, TrendingUp } from "lucide-react";
+import { Activity, Dumbbell, Flame, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 import { EmptyStateCard } from "@/components/dashboard/EmptyStateCard";
@@ -6,6 +6,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { serverReadWithAccessToken } from "@/lib/auth/authedFetch";
+import { CLASSIFICATION_LABELS, type TrainingOverview } from "@/lib/training";
 import { todayIso } from "@/lib/date";
 
 type WorkoutSummary = { id: string; name: string; exercise_count: number };
@@ -23,14 +24,21 @@ function CardIcon({ icon: Icon }: { icon: typeof Dumbbell }) {
 export default async function DashboardPage() {
   const today = todayIso();
 
-  const [meResponse, profileResponse, workoutsResponse, summaryResponse, measurementsResponse] =
-    await Promise.all([
-      serverReadWithAccessToken("/v1/auth/me"),
-      serverReadWithAccessToken("/v1/profile"),
-      serverReadWithAccessToken(`/v1/workouts?date_from=${today}&date_to=${today}`),
-      serverReadWithAccessToken(`/v1/nutrition/summary?date=${today}`),
-      serverReadWithAccessToken(`/v1/measurements?date_to=${today}`),
-    ]);
+  const [
+    meResponse,
+    profileResponse,
+    workoutsResponse,
+    summaryResponse,
+    measurementsResponse,
+    trainingResponse,
+  ] = await Promise.all([
+    serverReadWithAccessToken("/v1/auth/me"),
+    serverReadWithAccessToken("/v1/profile"),
+    serverReadWithAccessToken(`/v1/workouts?date_from=${today}&date_to=${today}`),
+    serverReadWithAccessToken(`/v1/nutrition/summary?date=${today}`),
+    serverReadWithAccessToken(`/v1/measurements?date_to=${today}`),
+    serverReadWithAccessToken("/v1/training/overview"),
+  ]);
 
   const email = meResponse.ok ? (await meResponse.json()).data.email : "";
   const displayName = profileResponse.ok
@@ -47,6 +55,15 @@ export default async function DashboardPage() {
     ? (await measurementsResponse.json()).data
     : [];
   const latestMeasurement = measurements.find((m) => m.weight_kg != null);
+  const training: TrainingOverview | null = trainingResponse.ok
+    ? (await trainingResponse.json()).data
+    : null;
+  // Lead with the exercise the engine has most to say about, falling back to the
+  // most recently trained one.
+  const headlineInsight =
+    training?.exercises.find((insight) =>
+      ["progressing", "possible_plateau", "declining"].includes(insight.classification),
+    ) ?? training?.exercises[0];
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
@@ -95,6 +112,29 @@ export default async function DashboardPage() {
             description="No meals logged today."
             ctaLabel="Log a meal"
             ctaHref="/nutrition/meals/new"
+          />
+        )}
+
+        {headlineInsight ? (
+          <Link href={`/training/exercises/${headlineInsight.exercise.id}`}>
+            <Card className="h-full transition-colors hover:bg-accent">
+              <CardHeader>
+                <CardIcon icon={Activity} />
+                <CardTitle className="text-base">Training insights</CardTitle>
+                <CardDescription>
+                  {headlineInsight.exercise.name} ·{" "}
+                  {CLASSIFICATION_LABELS[headlineInsight.classification]}
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        ) : (
+          <EmptyStateCard
+            icon={Activity}
+            title="Training insights"
+            description="Log a few workouts to see progression and plateau analysis."
+            ctaLabel="View training"
+            ctaHref="/training"
           />
         )}
 

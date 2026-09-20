@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Propagates {@code X-Correlation-ID}, mirroring Python's {@code CorrelationIdMiddleware}.
+ * Propagates {@code X-Correlation-ID}, mirroring the documented correlation-id behaviour.
  *
  * <p>nginx forwards the inbound header, so a correlation id set by the caller survives
  * the whole hop. The id is echoed on the response and placed in the error envelope.

@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * model supports those words.
  *
  * <p>The day-count fields carry explicit names. Jackson's snake_case strategy renders
- * {@code workoutsLast7Days} as {@code workouts_last7_days}, while the Python backend emits
+ * {@code workoutsLast7Days} as {@code workouts_last7_days}, while the previous implementation emits
  * {@code workouts_last_7_days} — it inserts a separator before a digit run and Jackson
  * does not. The shared fixtures caught the difference; without these annotations the
  * frontend would read undefined.

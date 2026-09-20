@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 /**
  * The success envelope every endpoint returns: {@code {"data": ..., "message"?: "..."}}.
  *
- * <p>{@code message} is omitted when absent — the Python backend only includes it on the
+ * <p>{@code message} is omitted when absent — the previous implementation only includes it on the
  * handful of routes that set one. {@code data} is always present, and may be null.
  *
  * @param data the payload

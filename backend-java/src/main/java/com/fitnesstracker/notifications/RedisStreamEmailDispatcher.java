@@ -11,14 +11,14 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Enqueues transactional email onto a Redis stream — the replacement for Celery.
+ * Enqueues transactional email onto a Redis stream — the replacement for the previous queue system.
  *
- * <p>Redis is already deployed and was already Celery's broker, so this adds no new
+ * <p>Redis is already deployed and was already the previous queue broker, so this adds no new
  * infrastructure. It preserves the property the previous system actually had:
  * at-least-once delivery once accepted, surviving a worker crash. Kafka or RabbitMQ would
  * be new infrastructure for two email types.
  *
- * <p><b>Enqueue never fails the request.</b> The Python implementation wraps
+ * <p><b>Enqueue never fails the request.</b> The reference implementation wrapped
  * {@code .delay()} in a catch-and-log specifically so that a Redis outage cannot take
  * registration and password reset down with it; email is the non-essential half of both
  * flows, and the user can recover via resend-verification or by requesting another link.

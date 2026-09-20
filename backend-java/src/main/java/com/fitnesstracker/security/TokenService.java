@@ -21,7 +21,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 /**
- * Mints and verifies the JWTs the Python backend already issues.
+ * Mints and verifies the JWTs the previous implementation already issues.
  *
  * <p>Compatibility is the whole job here, so the claim set is reproduced exactly (see
  * {@code app/core/security.py}):
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Service;
  *   <tr><td>{@code email_verified}</td><td>yes</td><td>—</td></tr>
  * </table>
  *
- * <p>No {@code iss} and no {@code aud}: the Python implementation sets neither, and adding
+ * <p>No {@code iss} and no {@code aud}: the previous implementation sets neither, and adding
  * them here would produce tokens it rejects. HS256 over the raw UTF-8 bytes of
  * {@code SECRET_KEY}, matching PyJWT.
  */
@@ -45,8 +45,8 @@ public class TokenService {
 
     /**
      * RFC 7518 §3.2 requires an HMAC key at least as long as the hash output. Nimbus
-     * enforces it; PyJWT only warns. A secret between Python's 16-character minimum and
-     * 32 bytes is therefore accepted by Python and rejected here — so it is checked at
+     * enforces it; PyJWT only warns. A secret between the previous 16-character minimum and
+     * 32 bytes is therefore accepted by the reference implementation and rejected here — so it is checked at
      * startup with an actionable message rather than on the first login.
      */
     private static final int MIN_SECRET_BYTES = 32;
@@ -64,7 +64,7 @@ public class TokenService {
             throw new IllegalStateException(
                     "SECRET_KEY must be at least " + MIN_SECRET_BYTES + " bytes for HS256 "
                             + "(RFC 7518 section 3.2); it is " + key.length
-                            + ". The Python backend only warns about this. Both backends "
+                            + ". The previous implementation only warns about this. Both backends "
                             + "must share the same value, so lengthen it in .env and "
                             + "restart both.");
         }
@@ -129,7 +129,7 @@ public class TokenService {
     /**
      * Verifies signature, expiry and the {@code type} claim, in that order.
      *
-     * @throws TokenException with the same error code the Python backend would return
+     * @throws TokenException with the same error code the previous implementation would return
      */
     public ParsedToken parse(String rawToken, TokenType expected) {
         SignedJWT jwt;

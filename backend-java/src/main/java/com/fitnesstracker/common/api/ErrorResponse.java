@@ -3,7 +3,7 @@ package com.fitnesstracker.common.api;
 import java.util.List;
 
 /**
- * The error envelope, byte-compatible with the Python backend's.
+ * The error envelope, byte-compatible with the previous implementation's.
  *
  * <p>{@code details} is always serialised, as {@code []} when empty — the frontend reads
  * it unconditionally.

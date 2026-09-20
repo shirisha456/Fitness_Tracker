@@ -23,7 +23,7 @@ import org.springframework.web.client.RestClient;
 /**
  * OpenAI over plain HTTP.
  *
- * <p>Deliberately not a vendor SDK: the Python backend makes ordinary
+ * <p>Deliberately not a vendor SDK: the previous implementation makes ordinary
  * {@code chat/completions} calls, so a {@link RestClient} is fewer dependencies, keeps the
  * vendor boundary honest, and respects {@code OPENAI_BASE_URL} — which is what lets a stub
  * stand in for end-to-end validation without a paid call.
@@ -172,7 +172,7 @@ public class OpenAiProvider implements AiProvider {
         return body;
     }
 
-    /** Maps upstream status onto the same 503/502 split the Python backend uses. */
+    /** Maps upstream status onto the same 503/502 split the previous implementation uses. */
     private static AiProviderException translate(HttpStatusCode status) {
         if (status.value() == 401 || status.value() == 403) {
             return AiProviderException.misconfigured();

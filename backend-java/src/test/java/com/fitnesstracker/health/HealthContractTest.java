@@ -14,14 +14,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * {@code /api/v1/health} and {@code /api/v1/ready} must stay byte-compatible with the
- * Python backend: the Docker healthcheck, nginx and the frontend all depend on them.
+ * previous implementation: the Docker healthcheck, nginx and the frontend all depend on them.
  */
 class HealthContractTest extends PostgresIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
 
     @Test
-    @DisplayName("GET /api/v1/health returns the same body as the Python backend")
+    @DisplayName("GET /api/v1/health returns the same body as the previous implementation")
     void healthMatchesContract() throws Exception {
         mockMvc.perform(get("/api/v1/health"))
                 .andExpect(status().isOk())

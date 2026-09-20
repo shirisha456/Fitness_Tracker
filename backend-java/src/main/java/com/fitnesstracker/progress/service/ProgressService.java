@@ -43,7 +43,7 @@ public class ProgressService {
      *
      * <p>{@code UNIQUE(user_id, recorded_at)} allows one check-in per day, so posting again
      * for a date the user already has updates that row in place — and still returns 201,
-     * which is what the Python endpoint does and what the measurement form relies on.
+     * which is what the documented contract does and what the measurement form relies on.
      * Read-then-write rather than letting the constraint raise, mirroring the original.
      */
     @Transactional

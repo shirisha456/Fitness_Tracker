@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * JSON settings that keep the wire format identical to the Python backend's.
+ * JSON settings that keep the wire format identical to the previous implementation's.
  *
  * <p>Three decisions, each load-bearing:
  *
@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
  *       times in the frontend source. Renaming to camelCase would break every page.
  *   <li><b>ISO-8601 timestamps, not epoch numbers.</b> Jackson's default is a numeric
  *       timestamp; {@code Instant} serialises as {@code 2026-09-18T16:48:51.077141Z},
- *       matching Python, once this is disabled.
+ *       matching the documented shape, once this is disabled.
  *   <li><b>Nulls are written, not omitted.</b> The frontend destructures optional fields,
  *       so an absent value must appear as {@code null} rather than vanish.
  * </ul>

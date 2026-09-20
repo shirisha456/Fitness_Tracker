@@ -105,7 +105,7 @@ class AiCoachApiTest extends PostgresIntegrationTest {
     // --- meals and chat ------------------------------------------------------
 
     @Test
-    @DisplayName("meal suggestions are returned in the Python shape")
+    @DisplayName("meal suggestions are returned in the documented shape")
     void generateMeals() throws Exception {
         provider.respondWith(json.writeValueAsString(Map.of("suggestions", List.of(
                 Map.of("name", "Grilled salmon bowl", "estimated_calories", 520,

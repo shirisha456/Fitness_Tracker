@@ -4,7 +4,7 @@ import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * AI provider configuration, read from the same environment variables the Python backend
+ * AI provider configuration, read from the same environment variables the previous implementation
  * uses so one {@code .env} configures both while they run side by side.
  *
  * @param apiKey null or blank means the feature is unconfigured, not broken

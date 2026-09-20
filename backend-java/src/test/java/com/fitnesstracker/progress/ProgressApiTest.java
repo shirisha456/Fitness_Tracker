@@ -148,7 +148,7 @@ class ProgressApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("measurement bounds match the Python schema, including the > 0 / >= 0 split")
+    @DisplayName("measurement bounds match the documented schema, including the > 0 / >= 0 split")
     void measurementBounds() throws Exception {
         // weight must be strictly positive; body fat may be exactly zero.
         for (Map<String, ?> invalid : java.util.List.<Map<String, ?>>of(

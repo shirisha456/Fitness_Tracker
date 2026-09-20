@@ -28,7 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * The training-insight endpoints over real data.
  *
  * <p>The engine itself is covered exhaustively by {@link TrainingAnalyticsFixtureTest}
- * against the shared Python fixtures; this covers what that cannot — routing, ownership,
+ * against the shared reference fixtures; this covers what that cannot — routing, ownership,
  * the 404-vs-insufficient-data distinction, and analytics computed from rows that actually
  * went through the workout API.
  */

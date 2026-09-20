@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface WaterEntryRepository extends JpaRepository<WaterEntry, UUID> {
 
-    /** Sorted by creation time, not logged date — matching the Python service. */
+    /** Sorted by creation time, not logged date — matching the previous implementation. */
     @Query("""
             SELECT w FROM WaterEntry w
              WHERE w.userId = :userId

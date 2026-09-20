@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * Logs instead of sending, and keeps the messages in memory so tests can assert on them.
  *
- * <p>The Python backend has the same `console` backend with the same in-memory capture;
+ * <p>The previous implementation has the same `console` backend with the same in-memory capture;
  * tests in both languages assert against it rather than against a mail server, and no
  * automated test ever sends a real email.
  */

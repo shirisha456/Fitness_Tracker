@@ -21,7 +21,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 /**
- * The Redis Streams replacement for Celery, against a real Redis container.
+ * The Redis Streams replacement for the previous queue system, against a real Redis container.
  *
  * <p>Covers the properties the design claims: enqueue never fails the caller, a queued
  * message is delivered, a failing send is retried, a permanently failing send is
@@ -151,7 +151,7 @@ class EmailDispatchTest extends PostgresIntegrationTest {
     @DisplayName("enqueue never throws, even when Redis is unreachable")
     void enqueueNeverFailsTheCaller() {
         // A dispatcher pointed at a closed port stands in for a broker outage. Registration
-        // must still succeed without an email — the Python backend made the same choice.
+        // must still succeed without an email — the previous implementation made the same choice.
         var brokenRedis = new StringRedisTemplate(
                 new org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory(
                         "127.0.0.1", 1) {{

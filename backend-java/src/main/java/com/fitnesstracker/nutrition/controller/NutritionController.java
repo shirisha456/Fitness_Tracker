@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Meals, water entries and the daily summary.
  *
- * <p>Three route prefixes on one controller because that is how the Python router groups
+ * <p>Three route prefixes on one controller because that is how the documented route layout groups
  * them ({@code meals_router}, {@code water_router}, {@code nutrition_router}) and the
  * paths are the contract.
  */
@@ -98,7 +98,7 @@ public class NutritionController {
         return ApiResponse.of(nutrition.listWaterEntries(user, date));
     }
 
-    /** There is no update endpoint for water — create and delete only, as in Python. */
+    /** There is no update endpoint for water — create and delete only, as in the reference implementation. */
     @DeleteMapping("/water-entries/{entryId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteWaterEntry(@CurrentUser User user, @PathVariable UUID entryId) {

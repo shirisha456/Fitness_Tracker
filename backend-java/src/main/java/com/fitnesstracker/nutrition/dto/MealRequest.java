@@ -8,7 +8,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
-/** Bounds copied from the Python schema: calories 0–20000, macros ≥ 0 or absent. */
+/** Bounds copied from the documented schema: calories 0–20000, macros ≥ 0 or absent. */
 public record MealRequest(
         @NotBlank @Size(min = 1, max = 255) String name,
         @NotNull LocalDate loggedAt,

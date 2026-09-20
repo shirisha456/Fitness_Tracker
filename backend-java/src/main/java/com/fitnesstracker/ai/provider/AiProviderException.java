@@ -4,7 +4,7 @@ package com.fitnesstracker.ai.provider;
  * An upstream AI failure, pre-classified so the service layer does not inspect vendor
  * exception types.
  *
- * <p>The two kinds map onto the status codes the Python backend already returns, which the
+ * <p>The two kinds map onto the status codes the previous implementation already returns, which the
  * frontend distinguishes:
  *
  * <ul>

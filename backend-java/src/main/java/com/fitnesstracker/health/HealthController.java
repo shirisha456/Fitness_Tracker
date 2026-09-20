@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Liveness and readiness, preserving the Python backend's exact contract.
+ * Liveness and readiness, preserving the previous implementation's exact contract.
  *
  * <p>Deliberately <em>not</em> replaced by Spring Boot Actuator. Actuator's
  * {@code /actuator/health} has a different path and a different body, and three things

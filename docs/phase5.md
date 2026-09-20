@@ -1,5 +1,12 @@
 # Phase 5 — Profile
 
+> **Historical document.** This records work done when the backend was implemented in
+> Python/FastAPI, or the rewrite from it. That implementation is no longer part of the
+> architecture and is not deployed; it remains in git history only (tag
+> `pre-java-only-cleanup`, branch `legacy-python-backend`). Kept for context, not as a
+> description of how the system works today — see [architecture.md](architecture.md).
+
+
 Single-row-per-user profile, and the real wiring for `/auth/me.has_profile`.
 
 ## What was built

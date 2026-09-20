@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 /**
  * Renders an unauthenticated request as the application's error envelope.
  *
- * <p>Spring Security's default is an empty 403 for anonymous access; the Python backend
+ * <p>Spring Security's default is an empty 403 for anonymous access; the previous implementation
  * returns <b>401</b> with {@code {"error": {...}}}, and the Next.js BFF keys its silent
  * refresh off exactly that status. Getting this wrong breaks every logged-in page.
  */

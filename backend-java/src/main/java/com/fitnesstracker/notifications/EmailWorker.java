@@ -30,7 +30,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Drains the email stream. The Celery worker's replacement.
+ * Drains the email stream. The the previous queue system worker's replacement.
  *
  * <p>Delivery semantics, spelled out because "it uses a queue" is not a design:
  *
